@@ -13,7 +13,7 @@ import java.util.Set;
 public class Task {
     private String name;
     private Set<String> dependsOn;
-    private Map<String, String> payload = new HashMap<>();
+    private Map<String, String> properties = new HashMap<>();
 
     public String getName() {
         return name;
@@ -23,12 +23,12 @@ public class Task {
         this.name = name;
     }
 
-    public Map<String, String> getPayload() {
-        return payload;
+    public Map<String, String> getProperties() {
+        return properties;
     }
 
-    public void setPayload(Map<String, String> payload) {
-        this.payload = payload;
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
     }
 
     public Set<String> getDependsOn() {
@@ -60,7 +60,7 @@ public class Task {
     public String toString() {
         final StringBuilder sb = new StringBuilder("Task{");
         sb.append("name='").append(name).append('\'');
-        sb.append(", payload=").append(payload);
+        sb.append(", properties=").append(properties);
         sb.append(", dependsOn=").append(dependsOn);
         sb.append('}');
         return sb.toString();
