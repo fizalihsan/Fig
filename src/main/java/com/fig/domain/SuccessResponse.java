@@ -1,6 +1,12 @@
 package com.fig.domain;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Date;
@@ -12,7 +18,7 @@ import java.util.UUID;
  * Date: 11/20/13
  * Time: 6:57 PM
  */
-public class SuccessResponse {
+public class SuccessResponse implements JsonSerializer<SuccessResponse>{
     private String hostName;
     private String processId;
     private String requestId;
@@ -74,5 +80,14 @@ public class SuccessResponse {
         sb.append(", message='").append(message).append('\'');
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    public JsonElement serialize(SuccessResponse response, Type typeOfSrc, JsonSerializationContext context) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("requestId", response.getRequestId());
+        jsonObject.addProperty("requestedTime", response.getRequestedTime().toString());
+        jsonObject.addProperty("message", response.getMessage());
+        return jsonObject;
     }
 }
