@@ -3,17 +3,16 @@ package com.fig.webservices;
 import com.fig.domain.ErrorResponse;
 import com.fig.domain.SuccessResponse;
 import com.fig.domain.Task;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.lang.reflect.Type;
 import java.util.Collection;
+
+import static com.fig.util.BindingUtil.fromJsonArray;
+import static com.fig.util.BindingUtil.toJson;
 
 /**
  * Comment here about the class
@@ -24,7 +23,6 @@ import java.util.Collection;
 @Path("/task")
 public class TaskResource {
     private static final Logger LOG = LoggerFactory.getLogger(TaskResource.class);
-    private static final Type TASKS = new TypeToken<Collection<Task>>(){}.getType();
 
     //TODO create homepage with link to all resources and sample
 
@@ -33,25 +31,19 @@ public class TaskResource {
     @Path("/create")
     public Response create(@DefaultValue("[]") @FormParam("request") String request) {
         // Require both properties to create.
-        Gson gson = new Gson();
         if (request == null) {
             String reason = "Property 'request' is missing.";
             String message = "Request to create task(s) failed !!!";
             return Response.status(Response.Status.BAD_REQUEST).
-                    entity(gson.toJson(new ErrorResponse(reason, message))). //TODO see if we could return the object directly instead of manually converting to json
+                    entity(toJson(new ErrorResponse(reason, message))). //TODO see if we could return the object directly instead of manually converting to json
                     build();
         }
 
-        final Collection<Task> tasks = gson.fromJson(request, TASKS);
+        final Collection<Task> tasks = fromJsonArray(request, Task.class);
         LOG.debug("Tasks: {}", tasks);
 
         final SuccessResponse response = new SuccessResponse("Request accepted successfully. ");
-
-        final GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonBuilder.registerTypeAdapter(SuccessResponse.class, new SuccessResponse(""));
-        gson = gsonBuilder.create();
-
-        return Response.ok(gson.toJson(response)).build();
+        return Response.ok(toJson(response)).build();
     }
 
     @GET
