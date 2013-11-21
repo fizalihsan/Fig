@@ -1,5 +1,6 @@
 package com.fig.domain;
 
+import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Date;
@@ -12,27 +13,26 @@ import java.util.UUID;
  * Time: 6:57 PM
  */
 public class SuccessResponse {
-    private static String HOST_NAME;
-    private final String requestId;
+    private String hostName;
+    private String processId;
+    private String requestId;
     private final Date requestedTime;
     private String message;
-
-    static {
-        try {
-            HOST_NAME = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-    }
 
     public SuccessResponse(String message) {
         this.message = message;
         this.requestedTime = new Date();
-        //Attaching hostname to avoid collisions due to the locality of the servers
-        this.requestId = HOST_NAME + "-" + UUID.randomUUID().toString();
     }
 
     public String getRequestId() {
+        if(requestId == null){
+            //Attaching hostname and processId to avoid collisions due to the locality of the servers
+            requestId = new StringBuilder()
+                    .append(getHostName()).append("-")
+                    .append(getProcessId()).append("-")
+                    .append(getUniqueId())
+                    .toString();
+        }
         return requestId;
     }
 
@@ -42,6 +42,28 @@ public class SuccessResponse {
 
     public String getMessage() {
         return message;
+    }
+
+    String getHostName(){
+        if(hostName==null){
+            try {
+                hostName = InetAddress.getLocalHost().getHostName();
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+        }
+        return hostName;
+    }
+
+    String getProcessId(){
+        if(processId==null){
+            processId = ManagementFactory.getRuntimeMXBean().getName();
+        }
+        return processId;
+    }
+
+    String getUniqueId(){
+        return UUID.randomUUID().toString();
     }
 
     @Override
