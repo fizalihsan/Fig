@@ -1,11 +1,16 @@
 package com.fig.util;
 
+
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.servlet.ServletContainer;
+import org.glassfish.jersey.servlet.ServletProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,9 +36,22 @@ public class WebserverUtil {
     public WebserverUtil(int httpPort){
         this.httpPort = httpPort;
         server = new Server(this.httpPort);
-        server.setHandler(contexts);
+//        server.setHandler(contexts);
         registerShutdownHook();
+
+
+        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        context.setContextPath("/");
+        server.setHandler(context);
+
+        ServletHolder servletHolder = new ServletHolder(new ServletContainer());
+//        servletHolder.setInitParameter(ServerProperties.PROVIDER_PACKAGES, "com.fig.webservices");
+        servletHolder.setInitParameter(ServletProperties.JAXRS_APPLICATION_CLASS, "com.fig.webservices.TaskApplication");
+        servletHolder.setInitOrder(0);
+
+        context.addServlet(servletHolder, "/*");
     }
+
 
     public void addHandler(Handler handler, String contextPath){
         LOG.info("Adding handler to server: {}", handler.getClass().getCanonicalName() );
@@ -43,6 +61,14 @@ public class WebserverUtil {
         contexts.addHandler(context);
     }
 
+    public void addHandler(Handler handler){
+        LOG.info("Adding handler to server: {}", handler.getClass().getCanonicalName() );
+        contexts.addHandler(handler);
+    }
+
+    /**
+     * Start the webserver.
+*/
     public void start(){
         //TODO don't start the server if no handlers are registered
         try {
@@ -57,7 +83,7 @@ public class WebserverUtil {
     /**
      * Register a hook to shutdown the web server when the JVM shuts down
      *
-     */
+    */
     private void registerShutdownHook() {
         // Registers a shutdown hook for the Neo4j instance so that it
         // shuts down nicely when the VM exits (even if you "Ctrl-C" the
@@ -77,23 +103,35 @@ public class WebserverUtil {
         });
     }
 
-    //TODO reduce scope of the method
-    public static Handler getHandler(){
+    /**
+     * Returns a test handler which prints "Hello World"
+     * @return
+    */
+    public static Handler getHelloWorldHandler(){
         return new AbstractHandler() {
             private void printRequest(HttpServletRequest request){
                 final Map parameterMap = request.getParameterMap();
                 for (Object key : parameterMap.keySet()) {
-                    LOG.info("{} = {}", key, parameterMap.get(key));
+                    LOG.info("RequestParameter : {} = {}", key, parameterMap.get(key));
                 }
             }
 
+            /*
+             * Handler that returns a static "Hello World" text
+             * @param target the target of the request, which is either a URI or a name from a named dispatcher.
+             * @param baseRequest the Jetty mutable request object, which is always unwrapped.
+             * @param request the immutable request object, which may have been wrapped by a filter or servlet.
+             * @param response the response, which may have been wrapped by a filter or servlet.
+             * @throws IOException
+             * @throws ServletException
+            */
             @Override
             public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
                 printRequest(request);
                 response.setContentType("text/html");
                 response.setStatus(HttpServletResponse.SC_OK);
-                response.getWriter().println("<h1>Hello</h1>");
-                ((Request)request).setHandled(true);
+                response.getWriter().println("<h1>Hello World</h1>");
+                baseRequest.setHandled(true);
             }
         };
     }

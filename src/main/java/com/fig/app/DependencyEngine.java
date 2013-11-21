@@ -16,7 +16,7 @@ public class DependencyEngine {
     public static void main(String[] args) {
         logger.debug("Hello World...");
         final DependencyEngine engine = new DependencyEngine();
-        engine.startWebserver();
+//        engine.startWebserver();
     }
 
     /**
@@ -24,7 +24,8 @@ public class DependencyEngine {
      */
     void startWebserver(){
         final WebserverUtil webserverUtil = new WebserverUtil(8080);
-        webserverUtil.addHandler(WebserverUtil.getHandler(), "/test");
+        webserverUtil.addHandler(WebserverUtil.getHelloWorldHandler(), "/test");
+
         webserverUtil.start();
     }
 }
