@@ -12,11 +12,13 @@ import java.util.Set;
  * Time: 1:08 AM
  */
 @ApplicationPath("/fig")
-public class TaskApplication extends Application {
+public class MainApplication extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         Set<Class<?>> set = new HashSet<>();
         set.add(TaskResource.class);
+        set.add(RelationshipResource.class);
+        set.add(StatusResource.class);
         return set;
     }
 }
