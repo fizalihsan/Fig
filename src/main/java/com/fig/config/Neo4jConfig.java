@@ -8,6 +8,7 @@ package com.fig.config;
  */
 public class Neo4jConfig {
     private String dbLocation;
+    private boolean enableWebserver;
 
     public String getDbLocation() {
         return dbLocation;
@@ -17,10 +18,19 @@ public class Neo4jConfig {
         this.dbLocation = dbLocation;
     }
 
+    public boolean isEnableWebserver() {
+        return enableWebserver;
+    }
+
+    public void setEnableWebserver(boolean enableWebserver) {
+        this.enableWebserver = enableWebserver;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Neo4jConfig{");
-        sb.append("dbLocation='").append(dbLocation).append('\'');
+        sb.append("dbLocation='").append(dbLocation).append("\',");
+        sb.append("enableWebserver='").append(enableWebserver).append("\'");
         sb.append('}');
         return sb.toString();
     }

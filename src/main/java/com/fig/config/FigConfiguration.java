@@ -1,5 +1,7 @@
 package com.fig.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
@@ -14,19 +16,27 @@ import java.nio.file.Paths;
  */
 public class FigConfiguration {
     private Neo4jConfig neo4jConfig;
+    private static FigConfiguration figConfiguration;
+    //TODO remove this hardcoding
+    private static final String CONFIG_FILE = "C:\\Fizal\\WorkArea\\SourceCode\\GitHubHome\\Fig\\src\\main\\resources\\figconfig.yaml";
+    private static final Logger LOG = LoggerFactory.getLogger(FigConfiguration.class);
 
     private FigConfiguration(){ }
 
-    public static FigConfiguration loadConfig(String configFile){
-        Yaml yaml = new Yaml();
-        FigConfiguration config = null;
-        try( InputStream in = Files.newInputStream(Paths.get(configFile)) ) {//TODO load from classpath
-            config = yaml.loadAs( in, FigConfiguration.class );
-            System.out.println( config.toString() );
-        } catch (Exception e){
-            e.printStackTrace();
+    public static FigConfiguration getInstance(){
+        if(figConfiguration==null){
+            figConfiguration = loadConfig(CONFIG_FILE);
+            LOG.info("Configuration Properties: {}", figConfiguration );
         }
-        return config;
+        return figConfiguration;
+    }
+
+    static FigConfiguration loadConfig(String configFile){
+        try( InputStream in = Files.newInputStream(Paths.get(configFile)) ) {//TODO load from classpath
+            return new Yaml().loadAs( in, FigConfiguration.class );
+        } catch (Exception e){
+            throw new RuntimeException("Error loading configuration file: " + configFile, e);
+        }
     }
 
     public Neo4jConfig getNeo4jConfig() {
