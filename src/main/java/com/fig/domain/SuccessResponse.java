@@ -55,7 +55,7 @@ public class SuccessResponse implements JsonSerializer<SuccessResponse>{
             try {
                 hostName = InetAddress.getLocalHost().getHostName();
             } catch (UnknownHostException e) {
-                e.printStackTrace();
+                throw new RuntimeException("Error getting hostname: ", e);
             }
         }
         return hostName;
