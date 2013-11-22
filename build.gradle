@@ -24,9 +24,11 @@ repositories {
     mavenCentral()
 }
 
+/*
 task wrapper(type: Wrapper) {
     gradleVersion = '1.8'
 }
+*/
 
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Library dependencies ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 final jettyVersion = '9.1.0.v20131115'
@@ -47,6 +49,8 @@ dependencies {
     //Neo4j Database
     //Revisit this later. We don't need all the neo4j libraries from top-level.
     compile "org.neo4j:neo4j:${neo4jVersion}"
+    compile "org.neo4j:neo4j-shell:${neo4jVersion}"
+    compile "org.neo4j.app:neo4j-server:${neo4jVersion}"
 
     //Webservice Libraries
     compile "javax.ws.rs:javax.ws.rs-api:2.0"
@@ -95,28 +99,3 @@ cargo {
 }
 
 
-//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Temporary solution for Tomcat deployment ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-task tomcatStop {
-    executeCmd("${tomcatHome}/bin/shutdown.bat")
-}
-
-task tomcatStart {
-    executeCmd("ls -l ")
-    executeCmd("${tomcatHome}/bin/startup.bat")
-}
-
-task cleanOldTomcatDeployment {
-    command = "rm -rf ${deployDir}/Fig-${version}"
-    println (command)
-    executeCmd(command)
-}
-
-task deployToTomcatAndRestart {
-    dependsOn(deployToTomcat, tomcatStop, cleanOldTomcatDeployment, tomcatStart)
-}
-
-def executeCmd(command) {
-    proc = command.execute()
-    proc.waitFor()
-}
