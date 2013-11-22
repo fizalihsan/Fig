@@ -50,7 +50,11 @@ dependencies {
     //Revisit this later. We don't need all the neo4j libraries from top-level.
     compile "org.neo4j:neo4j:${neo4jVersion}"
     compile "org.neo4j:neo4j-shell:${neo4jVersion}"
-    compile "org.neo4j.app:neo4j-server:${neo4jVersion}"
+    compile("org.neo4j.app:neo4j-server:${neo4jVersion}") {
+        exclude group: 'janino' //pulls 2.5.10, but we need 2.6.1
+        exclude group: 'ch.qos.logback'
+    }
+    compile "org.codehaus.janino:janino:2.6.1"
 
     //Webservice Libraries
     compile "javax.ws.rs:javax.ws.rs-api:2.0"
@@ -63,7 +67,7 @@ dependencies {
 
     //Logging frameworks
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.5'
-    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.+'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.0.13'
     compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.1.+' //needed for logback groovy config
 
     //Unit testing libraries
