@@ -9,7 +9,7 @@ final tomcatHome = "C:/apps/xampp/tomcat/"
 final deployDir = "${tomcatHome}/webapps"
 final cleanOldDeploymentCmd = "rm -rf ${deployDir}/Fig-${version}"
 
-//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Repositories ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Repositories  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 buildscript {
     repositories {
@@ -24,9 +24,14 @@ repositories {
     mavenCentral()
 }
 
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.8'
+}
+
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Library dependencies ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 final jettyVersion = '9.1.0.v20131115'
 final jerseyVersion = '2.4'
+final neo4jVersion = '1.9.5'
 
 dependencies {
     //Databinding Libraries
@@ -38,6 +43,10 @@ dependencies {
     compile group: 'org.eclipse.jetty', name: 'jetty-server', version: "${jettyVersion}"
     compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: "${jettyVersion}"
     compile group: 'org.eclipse.jetty', name: 'jetty-servlets', version: "${jettyVersion}"
+
+    //Neo4j Database
+    //Revisit this later. We don't need all the neo4j libraries from top-level.
+    compile "org.neo4j:neo4j:${neo4jVersion}"
 
     //Webservice Libraries
     compile "javax.ws.rs:javax.ws.rs-api:2.0"
@@ -55,6 +64,9 @@ dependencies {
 
     //Unit testing libraries
     testCompile group: 'junit', name: 'junit', version: '4.11'
+
+    //YAML (Snakeyaml library)
+    compile 'org.yaml:snakeyaml:1.13'
 }
 
 
@@ -94,13 +106,13 @@ task tomcatStart {
     executeCmd("${tomcatHome}/bin/startup.bat")
 }
 
-task cleanOldTomcatDeployment{
+task cleanOldTomcatDeployment {
     command = "rm -rf ${deployDir}/Fig-${version}"
     println (command)
     executeCmd(command)
 }
 
-task deployToTomcatAndRestart{
+task deployToTomcatAndRestart {
     dependsOn(deployToTomcat, tomcatStop, cleanOldTomcatDeployment, tomcatStart)
 }
 
