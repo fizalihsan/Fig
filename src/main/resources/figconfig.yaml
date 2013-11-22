@@ -1,3 +1,4 @@
 # Neo4J Configurations
 neo4jConfig:
     dbLocation: C:/apps/Neo4j Community/graph-db
+    enableWebserver: false
