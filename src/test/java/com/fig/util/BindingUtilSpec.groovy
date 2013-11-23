@@ -52,10 +52,7 @@ class BindingUtilSpec extends Specification {
 
     def "Json string to Java object"() {
         expect:
-        fromJson(json, clazz).toString() == obj.toString()
-        where:
-        json  | obj     | clazz
-        json1 | object1 | DomainA.class
+        fromJson(json1, DomainA.class).toString() == object1.toString()
     }
 
     def "Json array to Java objects"(){
@@ -94,20 +91,12 @@ class BindingUtilSpec extends Specification {
             this.integer = integer;
         }
 
-        public String getString() {
-            return string;
-        }
-
-        public int getInteger() {
-            return integer;
-        }
-
         @Override
         public JsonElement serialize(DomainB src, Type typeOfSrc, JsonSerializationContext context) {
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("hello", "world");
-            jsonObject.addProperty("serialString", src.getString());
-            jsonObject.addProperty("serialInteger", src.getInteger());
+            jsonObject.addProperty("serialString", this.string);
+            jsonObject.addProperty("serialInteger", this.integer);
             return jsonObject;
         }
 
