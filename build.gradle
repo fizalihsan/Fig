@@ -1,6 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'war'
-apply plugin: 'cargo'
+apply plugin: 'cargo' //for auto-deployment to web container like tomcat
+apply plugin: 'sonar-runner' //sonar server should be running to execute this.
+apply plugin: 'groovy' //for Spock testing
 
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Configuration Properties ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 sourceCompatibility = 1.7
@@ -31,11 +33,17 @@ task wrapper(type: Wrapper) {
 */
 
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Library dependencies ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+final gsCollectionsVersion = "4.2.0"
 final jettyVersion = '9.1.0.v20131115'
 final jerseyVersion = '2.4'
 final neo4jVersion = '1.9.5'
 
 dependencies {
+    //Collection Libraries
+    compile "com.goldmansachs:gs-collections-api:${gsCollectionsVersion}"
+    compile "com.goldmansachs:gs-collections:${gsCollectionsVersion}"
+    compile "com.goldmansachs:gs-collections-forkjoin:${gsCollectionsVersion}"
+
     //Databinding Libraries
 //    compile 'com.fasterxml.jackson.core:jackson-databind:2.2.3' //http://wiki.fasterxml.com/JacksonInFiveMinutes
     compile 'com.google.code.gson:gson:2.2.4' //https://sites.google.com/site/gson/gson-user-guide
@@ -45,6 +53,11 @@ dependencies {
     compile group: 'org.eclipse.jetty', name: 'jetty-server', version: "${jettyVersion}"
     compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: "${jettyVersion}"
     compile group: 'org.eclipse.jetty', name: 'jetty-servlets', version: "${jettyVersion}"
+
+    //Logging frameworks
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.5'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.0.13'
+    compile 'org.codehaus.groovy:groovy-all:2.1.9' //needed for logback groovy config
 
     //Neo4j Database
     //Revisit this later. We don't need all the neo4j libraries from top-level.
@@ -65,13 +78,9 @@ dependencies {
     cargo "org.codehaus.cargo:cargo-core-uberjar:1.3.3"
     cargo "org.codehaus.cargo:cargo-extensions-ant:1.3.3"
 
-    //Logging frameworks
-    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.5'
-    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.0.13'
-    compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.1.+' //needed for logback groovy config
-
     //Unit testing libraries
     testCompile group: 'junit', name: 'junit', version: '4.11'
+    testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
 
     //YAML (Snakeyaml library)
     compile 'org.yaml:snakeyaml:1.13'
