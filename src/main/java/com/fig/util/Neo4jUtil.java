@@ -4,11 +4,9 @@ package com.fig.util;
 import com.fig.config.FigConfiguration;
 import com.fig.config.Neo4jConfig;
 import com.fig.domain.Task;
-import com.fig.domain.TaskRelations;
 import com.google.common.annotations.VisibleForTesting;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
+import com.google.common.collect.Sets;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.kernel.GraphDatabaseAPI;
@@ -18,13 +16,16 @@ import org.neo4j.server.configuration.ServerConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import static com.fig.domain.TaskBuilder.task;
+import static com.fig.domain.TaskRelations.DEPENDS_ON;
 
 /**
  * Main utility class to interact with the Neo4j Database.
  *
- * Methods annotated with @Transactional creates its own transaction automatically.
  * User: Fizal
  * Date: 11/21/13
  * Time: 10:21 PM
@@ -95,7 +96,7 @@ public final class Neo4jUtil {
      * @param task
      */
     public void createTask(Task task){
-        if(taskExistsInDb(task)){
+        if(doesTaskExistInDb(task)){
             throw new RuntimeException("Task '" + task.getName() + "' already exists !!! Duplicate tasks not allowed." );
         }
 
@@ -103,12 +104,35 @@ public final class Neo4jUtil {
         node.setProperty(TASK_NAME, task.getName() );
         getNodeNameIndex().add(node, TASK_NAME, task.getName());
 
-        final Map<String, String> properties = task.getProperties();
+        final Map<String, Object> properties = task.getProperties();
         if(properties!=null){
-            for (Map.Entry<String, String> entry : properties.entrySet()) {
+            for (Map.Entry<String, Object> entry : properties.entrySet()) {
                 node.setProperty(entry.getKey(), entry.getValue() );
             }
         }
+    }
+
+    /**
+     * Update the properties in the given task
+     * @param task
+     */
+    public void updateTaskProperties(Task task){
+        final Node node = getNode(task.getName());
+
+        for (Map.Entry<String, Object> entry : task.getProperties().entrySet()) {
+            node.setProperty(entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * Delete the given task
+     * @param taskName
+     */
+    public void deleteTask(String taskName){
+        final Node node = getNode(taskName);
+
+        final Iterable<Relationship> relationships = node.getRelationships();
+        //TODO complete the delete logic
     }
 
     /**
@@ -116,7 +140,7 @@ public final class Neo4jUtil {
      * @param task
      * @return
      */
-    public boolean taskExistsInDb(Task task){
+    public boolean doesTaskExistInDb(Task task){
         return getNodeNameIndex().get(TASK_NAME, task.getName()).hasNext();
     }
 
@@ -129,11 +153,46 @@ public final class Neo4jUtil {
 
         if(dependsOn==null){  return; }
 
-        final Node node = getExistingNode(task.getName());
+        final Node node = getNode(task.getName());
         for (String targetNodeName : dependsOn) {
-            final Node targetNode = getExistingNode(targetNodeName);
-            node.createRelationshipTo(targetNode, TaskRelations.DEPENDS_ON);
+            final Node targetNode = getNode(targetNodeName);
+            node.createRelationshipTo(targetNode, DEPENDS_ON);
         }
+    }
+
+    /**
+     * Create a dependency between the two given tasks. Throws an exception even if one of the task does not exist.
+     * @param fromTask
+     * @param toTask
+     */
+    public void createTaskDependency(String fromTask, String toTask){
+        final Node fromNode = getNode(fromTask);
+        final Node toNode = getNode(toTask);
+
+        fromNode.createRelationshipTo(toNode, DEPENDS_ON);
+    }
+
+    /**
+     * Deletes the outgoing relationship fromTask -> toTask
+     * @param fromTask
+     * @param toTask
+     * @return Returns true if dependency is found and deleted.
+     */
+    public boolean deleteTaskDependency(String fromTask, String toTask){
+        final Node fromNode = getNode(fromTask);
+        final Node toNode = getNode(toTask);
+
+        boolean dependencyBroken = false;
+        final Iterable<Relationship> relationships = fromNode.getRelationships(DEPENDS_ON, Direction.OUTGOING);
+        for (Relationship relationship : relationships) {
+            final Node endNode = relationship.getEndNode();
+            if(getTaskName(endNode).equals(getTaskName(toNode))){
+                relationship.delete();
+                dependencyBroken = true;
+            }
+        }
+
+        return dependencyBroken;
     }
 
     /**
@@ -142,8 +201,8 @@ public final class Neo4jUtil {
      * @param taskName
      * @return
      */
-    public Node getExistingNode(String taskName){
-        final Node node = getNode(taskName);
+    public Node getNode(String taskName){
+        final Node node = getNodeIfExists(taskName);
         if(node == null){
             throw new RuntimeException("Task NOT FOUND in the database: " + taskName);
         }
@@ -156,8 +215,63 @@ public final class Neo4jUtil {
      * @param taskName
      * @return
      */
-    public Node getNode(String taskName){
+    public Node getNodeIfExists(String taskName){
         return getNodeNameIndex().get(TASK_NAME, taskName).getSingle();
+    }
+
+    /**
+     * Query the db for the given task name and return as a Task object.
+     * @param taskName
+     * @return Task, or null if no task by the given name is found.
+     */
+    public Task getTask(String taskName){
+        Node node = getNodeIfExists(taskName);
+        if(node==null){
+            return null;
+        }
+
+        return task(getTaskName(node))
+                .dependsOn(getDependentTaskNames(node))
+                .properties(getTaskProperties(node))
+                .build();
+    }
+
+    /**
+     * Get task name from the given node
+     * @param node
+     * @return
+     */
+    public String getTaskName(Node node){
+        return (String)node.getProperty(TASK_NAME);
+    }
+
+    /**
+     * Get all the outgoing dependencies for the given node
+     * @param node
+     * @return
+     */
+    public Set<String> getDependentTaskNames(Node node){
+        Set<String> dependsOn = Sets.newHashSet();
+        for (Relationship relationship : node.getRelationships(DEPENDS_ON, Direction.OUTGOING)) {
+            final Node dependentNode = relationship.getOtherNode(node);
+            dependsOn.add(getTaskName(dependentNode));
+        }
+        return dependsOn;
+    }
+
+    /**
+     * Extract all the properties from the given node, except the task name itself.
+     * @param node
+     * @return
+     */
+    public Map<String, Object> getTaskProperties(Node node){
+        Map<String, Object> properties = new HashMap<>();
+        for (String key : node.getPropertyKeys()) {
+            if(!key.equals(TASK_NAME)){ //Don't need to add the task name property
+                properties.put(key, node.getProperty(key));
+            }
+        }
+        return properties;
     }
 
     /**
