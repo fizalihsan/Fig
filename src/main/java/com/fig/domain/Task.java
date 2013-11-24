@@ -13,7 +13,12 @@ import java.util.Set;
 public class Task {
     private String name;
     private Set<String> dependsOn;
-    private Map<String, String> properties = new HashMap<>();
+    private Map<String, Object> properties = new HashMap<>();
+
+    //use builder to construct
+    Task(String name) {
+        this.name = name;
+    }
 
     public String getName() {
         return name;
@@ -23,11 +28,11 @@ public class Task {
         this.name = name;
     }
 
-    public Map<String, String> getProperties() {
+    public Map<String, Object> getProperties() {
         return properties;
     }
 
-    public void setProperties(Map<String, String> properties) {
+    public void setProperties(Map<String, Object> properties) {
         this.properties = properties;
     }
 
