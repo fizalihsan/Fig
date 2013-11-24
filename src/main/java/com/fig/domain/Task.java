@@ -1,6 +1,8 @@
 package com.fig.domain;
 
-import java.util.HashMap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -13,7 +15,7 @@ import java.util.Set;
 public class Task {
     private String name;
     private Set<String> dependsOn;
-    private Map<String, Object> properties = new HashMap<>();
+    private Map<String, Object> properties;
 
     //use builder to construct
     Task(String name) {
@@ -33,7 +35,7 @@ public class Task {
     }
 
     public void setProperties(Map<String, Object> properties) {
-        this.properties = properties;
+        this.properties = Maps.newHashMap(properties);
     }
 
     public Set<String> getDependsOn() {
@@ -41,7 +43,7 @@ public class Task {
     }
 
     public void setDependsOn(Set<String> dependsOn) {
-        this.dependsOn = dependsOn;
+        this.dependsOn = Sets.newHashSet(dependsOn);
     }
 
     @Override
