@@ -1,5 +1,7 @@
 package com.fig.domain;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
@@ -33,11 +35,7 @@ public class SuccessResponse implements JsonSerializer<SuccessResponse>{
     public String getRequestId() {
         if(requestId == null){
             //Attaching hostname and processId to avoid collisions due to the locality of the servers
-            requestId = new StringBuilder()
-                    .append(getHostName()).append("-")
-                    .append(getProcessId()).append("-")
-                    .append(getUniqueId())
-                    .toString();
+            requestId = Joiner.on("-").join(getHostName(), getProcessId(), getUniqueId());
         }
         return requestId;
     }
@@ -50,7 +48,8 @@ public class SuccessResponse implements JsonSerializer<SuccessResponse>{
         return message;
     }
 
-    String getHostName(){
+    @VisibleForTesting
+    String getHostName() {
         if(hostName==null){
             try {
                 hostName = InetAddress.getLocalHost().getHostName();
@@ -61,6 +60,7 @@ public class SuccessResponse implements JsonSerializer<SuccessResponse>{
         return hostName;
     }
 
+    @VisibleForTesting
     String getProcessId(){
         if(processId==null){
             processId = ManagementFactory.getRuntimeMXBean().getName();
@@ -68,6 +68,7 @@ public class SuccessResponse implements JsonSerializer<SuccessResponse>{
         return processId;
     }
 
+    @VisibleForTesting
     String getUniqueId(){
         return UUID.randomUUID().toString();
     }
