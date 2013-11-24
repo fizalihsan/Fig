@@ -11,7 +11,12 @@ import static com.fig.domain.TaskBuilder.task
 class TaskBuilderSpec extends Specification{
     def "Task with no name"() {
         when: task(null).build();
-        then: thrown(RuntimeException)
+        then: thrown(NullPointerException)
+    }
+
+    def "Task with empty name"() {
+        when: task("").build();
+        then: thrown(IllegalArgumentException)
     }
 
     def "Task with no dependencies"(){

@@ -3,6 +3,9 @@ package com.fig.domain;
 import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Comment here about the class
  * User: Fizal
@@ -31,10 +34,8 @@ public class TaskBuilder {
     }
 
     public Task build(){
-        if(this.task.getName()==null || this.task.getName().trim().length()==0){
-            throw new RuntimeException("Task name is mandatory");
-        }
-
+        checkNotNull(this.task.getName());
+        checkArgument(this.task.getName().length()>0);
         return task;
     }
 }
