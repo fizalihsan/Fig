@@ -1,5 +1,6 @@
 package com.fig.domain;
 
+import com.fig.annotations.Immutable;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.gson.JsonElement;
@@ -20,6 +21,7 @@ import java.util.UUID;
  * Date: 11/20/13
  * Time: 6:57 PM
  */
+@Immutable
 public class SuccessResponse implements JsonSerializer<SuccessResponse>{
     private String hostName;
     private String processId;

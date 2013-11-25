@@ -1,5 +1,7 @@
 package com.fig.domain;
 
+import com.fig.annotations.Immutable;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -12,6 +14,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Date: 11/23/13
  * Time: 7:50 PM
  */
+@Immutable
 public class TaskBuilder {
 
     private Task task;

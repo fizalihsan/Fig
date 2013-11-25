@@ -1,11 +1,14 @@
 package com.fig.domain;
 
+import com.fig.annotations.Immutable;
+
 /**
  * Comment here about the class
  * User: Fizal
  * Date: 11/20/13
  * Time: 6:43 PM
  */
+@Immutable
 public class ErrorResponse {
     private String reason;
     private String message;
