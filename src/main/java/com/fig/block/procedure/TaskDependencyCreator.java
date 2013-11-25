@@ -17,14 +17,14 @@ import java.util.Collection;
  */
 @ThreadSafe
 public class TaskDependencyCreator implements Procedure<Collection<Pair<String, String>>> {
-    private static final TwinCheckPredicate<String, String> SELF_DEPENDENCY_CHECK = new TwinCheckPredicate<>();
+    private static final TwinCheckPredicate<String, String> TWIN_CHECK_PREDICATE = new TwinCheckPredicate<>();
 
     private final Neo4jTaskAdapter adapter = new Neo4jTaskAdapter();
 
     @Override
     public void value(Collection<Pair<String, String>> taskNamePairs) {
         for (Pair<String, String> taskNamePair : taskNamePairs) {
-            boolean noSelfDependency = !SELF_DEPENDENCY_CHECK.accept(taskNamePair); //Restrict self-dependency
+            boolean noSelfDependency = !TWIN_CHECK_PREDICATE.accept(taskNamePair); //Restrict self-dependency
 
             //TODO implement logic to restrict cyclic-dependency
             boolean noCyclicDependency = true; //Restrict cyclic-dependency

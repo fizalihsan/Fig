@@ -30,14 +30,19 @@ public class TransactionWrapper <T> implements Procedure<T> {
     public void value(T value) {
         final Transaction tx = getAdapter().beginTransaction();
         try {
-            procedure.value(value);
+            getProcedure().value(value);
             tx.success();
         } catch(Exception e) {
-            LOG.info("Error occurred...Transaction could not be committed.");
-            throw new RuntimeException("Error in transaction: ", e);
+            tx.failure();
+            throw new RuntimeException("Error in transaction - Rolling back: ", e);
         } finally {
             tx.finish();
         }
+    }
+
+    @VisibleForTesting
+    Procedure<T> getProcedure() {
+        return procedure;
     }
 
     @VisibleForTesting

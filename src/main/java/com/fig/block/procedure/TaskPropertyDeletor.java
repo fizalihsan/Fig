@@ -27,18 +27,13 @@ public class TaskPropertyDeletor implements Procedure<Collection<Task>> {
     @Override
     public void value(Collection<Task> tasks) {
         for (Task task: tasks) {
-            final Node node = getNode(task.getName());
+            final Node node = getAdapter().getNode(task.getName());
 
             for (Map.Entry<String, Object> entry : task.getProperties().entrySet()) {
                 final String key = entry.getKey();
                 node.removeProperty(key);
             }
         }
-    }
-
-    @VisibleForTesting
-    Node getNode(String taskName){
-        return getAdapter().getNode(taskName);
     }
 
     @VisibleForTesting
