@@ -1,5 +1,5 @@
 package com.fig.block.procedure
-import com.fig.util.Neo4jTaskAdapter
+import com.fig.manager.Neo4jTaskAdapter
 import com.gs.collections.api.block.procedure.Procedure
 import org.neo4j.graphdb.Transaction
 import spock.lang.Specification

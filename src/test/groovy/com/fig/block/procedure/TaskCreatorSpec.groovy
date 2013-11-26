@@ -1,6 +1,6 @@
 package com.fig.block.procedure
 
-import com.fig.util.Neo4jTaskAdapter
+import com.fig.manager.Neo4jTaskAdapter
 import spock.lang.Specification
 
 import static com.fig.domain.TaskBuilder.task
