@@ -1,4 +1,4 @@
-package com.fig.util
+package com.fig.manager
 
 import org.neo4j.graphdb.Transaction
 import org.neo4j.test.TestGraphDatabaseFactory
@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory
 import spock.lang.Shared
 import spock.lang.Specification
 
+import static com.fig.domain.FigConstants.TASK_NAME
 import static com.fig.domain.TaskBuilder.task
 import static com.fig.domain.TaskRelations.DEPENDS_ON
-import static com.fig.util.Neo4jUtil.TASK_NAME
 /**
  * Comment here about the class
  * User: Fizal
@@ -18,14 +18,14 @@ import static com.fig.util.Neo4jUtil.TASK_NAME
  */
 class Neo4jTaskAdapterSpec extends Specification {
     private static final Logger LOG = LoggerFactory.getLogger(Neo4jTaskAdapterSpec.class);
-    @Shared Neo4jUtil neo4jUtil
+    @Shared Neo4jHelper neo4jUtil
     @Shared Transaction txn
     @Shared def adapter = new Neo4jTaskAdapter()
 
     def setup(){
         LOG.debug("Creating test graph database")
-        neo4jUtil = new Neo4jUtil()
-        Neo4jUtil.setInstance(neo4jUtil)
+        neo4jUtil = new Neo4jHelper()
+        Neo4jHelper.setInstance(neo4jUtil)
         def graphDb = new TestGraphDatabaseFactory().newImpermanentDatabase()
         neo4jUtil.setGraphDb(graphDb)
         neo4jUtil.createNodeNameIndex()

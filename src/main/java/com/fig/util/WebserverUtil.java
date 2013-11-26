@@ -39,14 +39,13 @@ public class WebserverUtil {
 //        server.setHandler(contexts);
         registerShutdownHook();
 
-
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         server.setHandler(context);
 
         ServletHolder servletHolder = new ServletHolder(new ServletContainer());
 //        servletHolder.setInitParameter(ServerProperties.PROVIDER_PACKAGES, "com.fig.webservices");
-        servletHolder.setInitParameter(ServletProperties.JAXRS_APPLICATION_CLASS, "com.fig.webservices.TaskApplication");
+        servletHolder.setInitParameter(ServletProperties.JAXRS_APPLICATION_CLASS, "com.fig.webservices.MainApplication");
         servletHolder.setInitOrder(0);
 
         context.addServlet(servletHolder, "/*");
