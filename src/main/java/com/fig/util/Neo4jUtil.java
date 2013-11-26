@@ -4,6 +4,8 @@ package com.fig.util;
 import com.fig.config.FigConfiguration;
 import com.fig.config.Neo4jConfig;
 import com.google.common.annotations.VisibleForTesting;
+import org.neo4j.cypher.javacompat.ExecutionEngine;
+import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
@@ -118,6 +120,26 @@ public final class Neo4jUtil {
         return nodeNameIndex;
     }
 
+    /**
+     * Executes the cypher
+     * @param cypher
+     * @return
+     */
+    String executeCypher(String cypher){
+        final GraphDatabaseService graphDb = getGraphDb();
+        Transaction tx = graphDb.beginTx();
+        ExecutionResult result = null;
+        try {
+            ExecutionEngine engine = new ExecutionEngine( graphDb );
+            result = engine.execute( cypher );
+            tx.success();
+        } catch(Exception e){
+            throw new RuntimeException("Error executing cypher: ", e);
+        } finally {
+            tx.finish();
+        }
+        return result.dumpToString();
+    }
     @VisibleForTesting
     GraphDatabaseService getGraphDb() {
         return graphDb;

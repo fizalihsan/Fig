@@ -230,6 +230,15 @@ public class Neo4jTaskAdapter {
     }
 
     /**
+     * Executes the cypher
+     * @param cypher
+     * @return
+     */
+    public String executeCypher(String cypher){
+        return Neo4jUtil.getInstance().executeCypher(cypher);
+    }
+
+    /**
      * Begin a transaction
      * @return JTA-compliant Transaction object
      */
