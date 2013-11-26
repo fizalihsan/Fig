@@ -1,4 +1,4 @@
-package com.fig.util;
+package com.fig.manager;
 
 
 import com.fig.config.FigConfiguration;
@@ -18,6 +18,8 @@ import org.neo4j.server.configuration.ServerConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.fig.domain.FigConstants.TASK_NAME;
+
 /**
  * Main utility class to interact with the Neo4j Database.
  *
@@ -26,25 +28,23 @@ import org.slf4j.LoggerFactory;
  * Time: 10:21 PM
  */
 
-public final class Neo4jUtil {
-    private static final Logger LOG = LoggerFactory.getLogger(Neo4jUtil.class);
-    @VisibleForTesting
-    static final String TASK_NAME = "TASK_NAME";
+public final class Neo4jHelper {
+    private static final Logger LOG = LoggerFactory.getLogger(Neo4jHelper.class);
 
     private GraphDatabaseService graphDb;
     private WrappingNeoServerBootstrapper webserver;
     private Index<Node> nodeNameIndex;
 
-    private static volatile Neo4jUtil instance;
+    private static volatile Neo4jHelper instance;
 
     @VisibleForTesting
-    Neo4jUtil() {}
+    Neo4jHelper() {}
 
-    static Neo4jUtil getInstance() {
+    static Neo4jHelper getInstance() {
         if(instance == null){
-            synchronized (Neo4jUtil.class){
+            synchronized (Neo4jHelper.class){
                 if(instance == null){
-                    Neo4jUtil tempInstance = new Neo4jUtil();
+                    Neo4jHelper tempInstance = new Neo4jHelper();
                     tempInstance.createGraphDb();
                     tempInstance.createNodeNameIndex();
                     tempInstance.registerShutdownHook();
@@ -140,7 +140,7 @@ public final class Neo4jUtil {
         }
         return result.dumpToString();
     }
-    @VisibleForTesting
+
     GraphDatabaseService getGraphDb() {
         return graphDb;
     }
@@ -152,7 +152,7 @@ public final class Neo4jUtil {
 
     @VisibleForTesting
     void createNodeNameIndex() {
-        this.nodeNameIndex = getGraphDb().index().forNodes( TASK_NAME );
+        this.nodeNameIndex = getGraphDb().index().forNodes(TASK_NAME );
     }
 
     @VisibleForTesting
@@ -161,7 +161,7 @@ public final class Neo4jUtil {
     }
 
     @VisibleForTesting
-    static void setInstance(Neo4jUtil instance) {
-        Neo4jUtil.instance = instance;
+    static void setInstance(Neo4jHelper instance) {
+        Neo4jHelper.instance = instance;
     }
 }

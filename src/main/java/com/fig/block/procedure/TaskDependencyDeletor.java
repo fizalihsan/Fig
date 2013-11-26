@@ -1,6 +1,6 @@
 package com.fig.block.procedure;
 
-import com.fig.util.Neo4jTaskAdapter;
+import com.fig.manager.Neo4jTaskAdapter;
 import com.google.common.annotations.VisibleForTesting;
 import com.gs.collections.api.block.procedure.Procedure;
 import com.gs.collections.api.tuple.Pair;

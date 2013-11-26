@@ -3,9 +3,7 @@ package com.fig.manager;
 import com.fig.annotations.Transactional;
 import com.fig.block.procedure.*;
 import com.fig.domain.Task;
-import com.fig.util.Neo4jTaskAdapter;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Sets;
 import com.gs.collections.api.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,8 +11,10 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.Set;
 
+import static com.google.common.collect.Sets.newHashSet;
+
 /**
- * Helper class to bridge the gap between business logic and Neo4j.
+ * This class exposes all the high-level business logic methods.
  *
  * Methods annotated with @Transactional creates its own transaction automatically.
  * User: Fizal
@@ -48,15 +48,19 @@ public class TaskManager {
         LOG.info("{} Tasks created successfully...", tasks.size());
     }
 
+    public Task getTask(String taskName){
+        return getAdapter().getTask(taskName);
+    }
+
     /**
      * Queries the graph database for the given task names. If none are found, an empty collection is returned.
      * @param taskNames
      * @return
      */
     public Set<Task> getTasks(Set<String> taskNames){
-        Set<Task> tasks = Sets.newHashSet();
+        Set<Task> tasks = newHashSet();
         for (String taskName : taskNames) {
-            final Task task = getAdapter().getTask(taskName);
+            final Task task = getTask(taskName);
             if(task!=null){
                 tasks.add(task);
             }
@@ -116,4 +120,5 @@ public class TaskManager {
         }
         return this.adapter;
     }
+
 }

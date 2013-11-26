@@ -1,4 +1,4 @@
-package com.fig.util;
+package com.fig.manager;
 
 import com.fig.domain.Task;
 import com.google.common.annotations.VisibleForTesting;
@@ -15,13 +15,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static com.fig.domain.FigConstants.TASK_NAME;
 import static com.fig.domain.TaskBuilder.task;
 import static com.fig.domain.TaskRelations.DEPENDS_ON;
-import static com.fig.util.Neo4jUtil.TASK_NAME;
 import static org.neo4j.graphdb.Direction.OUTGOING;
 
 /**
- * Adapter class between the Neo4jUtil and the rest of the application. It restricts the leakage of Neo4j related
+ * Adapter class between the Neo4jHelper and the rest of the application. It restricts the leakage of Neo4j related
  * classes to rest of the module.
  * User: Fizal
  * Date: 11/24/13
@@ -235,7 +235,7 @@ public class Neo4jTaskAdapter {
      * @return
      */
     public String executeCypher(String cypher){
-        return Neo4jUtil.getInstance().executeCypher(cypher);
+        return Neo4jHelper.getInstance().executeCypher(cypher);
     }
 
     /**
@@ -243,17 +243,17 @@ public class Neo4jTaskAdapter {
      * @return JTA-compliant Transaction object
      */
     public Transaction beginTransaction() {
-        return Neo4jUtil.getInstance().beginTransaction();
+        return Neo4jHelper.getInstance().beginTransaction();
     }
 
     @VisibleForTesting
     GraphDatabaseService getGraphDb(){
-        return Neo4jUtil.getInstance().getGraphDb();
+        return Neo4jHelper.getInstance().getGraphDb();
     }
 
     @VisibleForTesting
     Index<Node> getNodeNameIndex(){
-        return Neo4jUtil.getInstance().getNodeNameIndex();
+        return Neo4jHelper.getInstance().getNodeNameIndex();
     }
 
 }
