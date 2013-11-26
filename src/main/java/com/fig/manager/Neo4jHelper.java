@@ -11,10 +11,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.index.Index;
-import org.neo4j.kernel.GraphDatabaseAPI;
-import org.neo4j.server.WrappingNeoServerBootstrapper;
-import org.neo4j.server.configuration.Configurator;
-import org.neo4j.server.configuration.ServerConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +28,6 @@ public final class Neo4jHelper {
     private static final Logger LOG = LoggerFactory.getLogger(Neo4jHelper.class);
 
     private GraphDatabaseService graphDb;
-    private WrappingNeoServerBootstrapper webserver;
     private Index<Node> nodeNameIndex;
 
     private static volatile Neo4jHelper instance;
@@ -48,7 +43,6 @@ public final class Neo4jHelper {
                     tempInstance.createGraphDb();
                     tempInstance.createNodeNameIndex();
                     tempInstance.registerShutdownHook();
-                    tempInstance.enableWebserver();
                     instance = tempInstance;
                 }
             }
@@ -69,23 +63,6 @@ public final class Neo4jHelper {
 
     }
 
-    @VisibleForTesting
-    void enableWebserver(){
-        final Neo4jConfig neo4jConfig = FigConfiguration.getInstance().getNeo4jConfig();
-        final boolean enableWebserver = neo4jConfig.isEnableWebserver();
-        if(enableWebserver){
-            ServerConfigurator webserverConfig;
-            webserverConfig = new ServerConfigurator((GraphDatabaseAPI) getGraphDb());
-            // let the server endpoint be on a custom port
-            webserverConfig.configuration().setProperty(Configurator.WEBSERVER_PORT_PROPERTY_KEY, 7575);
-
-            this.webserver = new WrappingNeoServerBootstrapper((GraphDatabaseAPI) getGraphDb(), webserverConfig);
-
-            //Neo4j web console or https://gephi.org/
-            webserver.start();
-        }
-    }
-
     /**
      * Register a hook to shutdown the graph database when the JVM shuts down
      *
@@ -98,10 +75,6 @@ public final class Neo4jHelper {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                if(getWebserver()!=null){
-                    LOG.info("Shutting down web server...");
-                    getWebserver().stop();
-                }
                 LOG.info("Shutting down graph database...");
                 getGraphDb().shutdown();
             }
@@ -153,11 +126,6 @@ public final class Neo4jHelper {
     @VisibleForTesting
     void createNodeNameIndex() {
         this.nodeNameIndex = getGraphDb().index().forNodes(TASK_NAME );
-    }
-
-    @VisibleForTesting
-    public WrappingNeoServerBootstrapper getWebserver() {
-        return webserver;
     }
 
     @VisibleForTesting
