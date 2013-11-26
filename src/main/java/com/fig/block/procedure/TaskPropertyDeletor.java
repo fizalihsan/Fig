@@ -5,10 +5,8 @@ import com.fig.domain.Task;
 import com.fig.util.Neo4jTaskAdapter;
 import com.google.common.annotations.VisibleForTesting;
 import com.gs.collections.api.block.procedure.Procedure;
-import org.neo4j.graphdb.Node;
 
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * Re-usable procedure to delete task properties.
@@ -27,12 +25,7 @@ public class TaskPropertyDeletor implements Procedure<Collection<Task>> {
     @Override
     public void value(Collection<Task> tasks) {
         for (Task task: tasks) {
-            final Node node = getAdapter().getNode(task.getName());
-
-            for (Map.Entry<String, Object> entry : task.getProperties().entrySet()) {
-                final String key = entry.getKey();
-                node.removeProperty(key);
-            }
+            getAdapter().deleteTaskProperties(task);
         }
     }
 
