@@ -11,6 +11,10 @@ final tomcatHome = "C:/apps/xampp/tomcat/"
 final deployDir = "${tomcatHome}/webapps"
 final cleanOldDeploymentCmd = "rm -rf ${deployDir}/Fig-${version}"
 
+test{
+    jvmArgs '-Xms64m', '-Xmx512m', '-XX:MaxPermSize=128m'
+}
+
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Repositories  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 buildscript {
@@ -40,19 +44,19 @@ final neo4jVersion = '1.9.5'
 
 dependencies {
     //Collection Libraries
-    compile "com.goldmansachs:gs-collections-api:${gsCollectionsVersion}"
-    compile "com.goldmansachs:gs-collections:${gsCollectionsVersion}"
-    compile "com.goldmansachs:gs-collections-forkjoin:${gsCollectionsVersion}"
+    compile "com.goldmansachs:gs-collections-api:${gsCollectionsVersion}",
+            "com.goldmansachs:gs-collections:${gsCollectionsVersion}",
+            "com.goldmansachs:gs-collections-forkjoin:${gsCollectionsVersion}"
 
     //Databinding Libraries
 //    compile 'com.fasterxml.jackson.core:jackson-databind:2.2.3' //http://wiki.fasterxml.com/JacksonInFiveMinutes
     compile 'com.google.code.gson:gson:2.2.4' //https://sites.google.com/site/gson/gson-user-guide
 
     //Jetty server libraries
-    compile group: 'org.eclipse.jetty', name: 'jetty-project', version: "${jettyVersion}"
-    compile group: 'org.eclipse.jetty', name: 'jetty-server', version: "${jettyVersion}"
-    compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: "${jettyVersion}"
-    compile group: 'org.eclipse.jetty', name: 'jetty-servlets', version: "${jettyVersion}"
+    compile "org.eclipse.jetty:jetty-project:${jettyVersion}",
+            "org.eclipse.jetty:jetty-server:${jettyVersion}",
+            "org.eclipse.jetty:jetty-servlet:${jettyVersion}",
+            "org.eclipse.jetty:jetty-servlets:${jettyVersion}"
 
     //Logging frameworks
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.5'
@@ -61,8 +65,8 @@ dependencies {
 
     //Neo4j Database
     //Revisit this later. We don't need all the neo4j libraries from top-level.
-    compile "org.neo4j:neo4j:${neo4jVersion}"
-    compile "org.neo4j:neo4j-shell:${neo4jVersion}"
+    compile "org.neo4j:neo4j:${neo4jVersion}",
+            "org.neo4j:neo4j-shell:${neo4jVersion}"
     compile("org.neo4j.app:neo4j-server:${neo4jVersion}") {
         exclude group: 'janino' //pulls 2.5.10, but we need 2.6.1
         exclude group: 'ch.qos.logback'
@@ -81,6 +85,7 @@ dependencies {
     //Unit testing libraries
     testCompile group: 'junit', name: 'junit', version: '4.11'
     testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
+    testCompile group: "org.neo4j", name: "neo4j-kernel", version: "${neo4jVersion}", classifier: "tests"
 
     //YAML (Snakeyaml library)
     compile 'org.yaml:snakeyaml:1.13'

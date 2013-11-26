@@ -35,8 +35,8 @@ public final class Neo4jUtil {
 
     private static volatile Neo4jUtil instance;
 
-    //Privatized constructor to restrict access from clients
-    private Neo4jUtil() {}
+    @VisibleForTesting
+    Neo4jUtil() {}
 
     static Neo4jUtil getInstance() {
         if(instance == null){
@@ -44,6 +44,9 @@ public final class Neo4jUtil {
                 if(instance == null){
                     Neo4jUtil tempInstance = new Neo4jUtil();
                     tempInstance.createGraphDb();
+                    tempInstance.createNodeNameIndex();
+                    tempInstance.registerShutdownHook();
+                    tempInstance.enableWebserver();
                     instance = tempInstance;
                 }
             }
@@ -51,38 +54,33 @@ public final class Neo4jUtil {
         return instance;
     }
 
-    /**
-     * Create a graph database
-     *
-     */
-    void createGraphDb() {
+    void createGraphDb(){
         final Neo4jConfig neo4jConfig = FigConfiguration.getInstance().getNeo4jConfig();
         String dbPath = neo4jConfig.getDbLocation();
-        try {
-            LOG.info("Creating graph database...");
-            this.graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath)
+
+        LOG.info("Creating graph database...");
+        this.graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath)
 //                    .setConfig(ShellSettings.remote_shell_enabled, "true")
 //                    .setConfig(GraphDatabaseSettings.node_auto_indexing, "true")
 //                    .setConfig( GraphDatabaseSettings.node_keys_indexable, TASK_NAME)
-                    .newGraphDatabase();
+                .newGraphDatabase();
 
-            this.nodeNameIndex = graphDb.index().forNodes( TASK_NAME );
-            registerShutdownHook(this.graphDb, this.webserver);
+    }
 
-            final boolean enableWebserver = neo4jConfig.isEnableWebserver();
-            if(enableWebserver){
-                ServerConfigurator webserverConfig;
-                webserverConfig = new ServerConfigurator((GraphDatabaseAPI) graphDb);
-                // let the server endpoint be on a custom port
-                webserverConfig.configuration().setProperty(Configurator.WEBSERVER_PORT_PROPERTY_KEY, 7575);
+    @VisibleForTesting
+    void enableWebserver(){
+        final Neo4jConfig neo4jConfig = FigConfiguration.getInstance().getNeo4jConfig();
+        final boolean enableWebserver = neo4jConfig.isEnableWebserver();
+        if(enableWebserver){
+            ServerConfigurator webserverConfig;
+            webserverConfig = new ServerConfigurator((GraphDatabaseAPI) getGraphDb());
+            // let the server endpoint be on a custom port
+            webserverConfig.configuration().setProperty(Configurator.WEBSERVER_PORT_PROPERTY_KEY, 7575);
 
-                webserver = new WrappingNeoServerBootstrapper((GraphDatabaseAPI) graphDb, webserverConfig);
+            this.webserver = new WrappingNeoServerBootstrapper((GraphDatabaseAPI) getGraphDb(), webserverConfig);
 
-                //Neo4j web console or https://gephi.org/
-                webserver.start();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Error creating graph database", e);
+            //Neo4j web console or https://gephi.org/
+            webserver.start();
         }
     }
 
@@ -91,19 +89,19 @@ public final class Neo4jUtil {
      *
      * @param graphDb graph database to shutdown
      */
-    private void registerShutdownHook(final GraphDatabaseService graphDb, final WrappingNeoServerBootstrapper webserver) {
+    private void registerShutdownHook() {
         // Registers a shutdown hook for the Neo4j instance so that it
         // shuts down nicely when the VM exits (even if you "Ctrl-C" the
         // running example before it's completed)
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                if(webserver!=null){
+                if(getWebserver()!=null){
                     LOG.info("Shutting down web server...");
-                    webserver.stop();
+                    getWebserver().stop();
                 }
                 LOG.info("Shutting down graph database...");
-                graphDb.shutdown();
+                getGraphDb().shutdown();
             }
         });
     }
@@ -116,13 +114,32 @@ public final class Neo4jUtil {
         return getGraphDb().beginTx();
     }
 
+    Index<Node> getNodeNameIndex() {
+        return nodeNameIndex;
+    }
+
     @VisibleForTesting
     GraphDatabaseService getGraphDb() {
         return graphDb;
     }
 
     @VisibleForTesting
-    Index<Node> getNodeNameIndex() {
-        return nodeNameIndex;
+    void setGraphDb(GraphDatabaseService graphDb){
+        this.graphDb = graphDb;
+    }
+
+    @VisibleForTesting
+    void createNodeNameIndex() {
+        this.nodeNameIndex = getGraphDb().index().forNodes( TASK_NAME );
+    }
+
+    @VisibleForTesting
+    public WrappingNeoServerBootstrapper getWebserver() {
+        return webserver;
+    }
+
+    @VisibleForTesting
+    static void setInstance(Neo4jUtil instance) {
+        Neo4jUtil.instance = instance;
     }
 }

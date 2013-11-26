@@ -1,11 +1,15 @@
 package com.fig.util;
 
 import com.fig.domain.Task;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
-import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.index.Index;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +18,7 @@ import java.util.Set;
 import static com.fig.domain.TaskBuilder.task;
 import static com.fig.domain.TaskRelations.DEPENDS_ON;
 import static com.fig.util.Neo4jUtil.TASK_NAME;
+import static org.neo4j.graphdb.Direction.OUTGOING;
 
 /**
  * Adapter class between the Neo4jUtil and the rest of the application. It restricts the leakage of Neo4j related
@@ -23,9 +28,9 @@ import static com.fig.util.Neo4jUtil.TASK_NAME;
  * Time: 6:54 PM
  */
 public class Neo4jTaskAdapter {
+    private static final Logger LOG = LoggerFactory.getLogger(Neo4jTaskAdapter.class);
 
-    private static final Neo4jUtil UTIL = Neo4jUtil.getInstance();
-
+    //TODO annotate all the methods that require a transaction with EJB style annotations
     /**
      * Add the given task as a node in the database
      * @param task
@@ -35,9 +40,9 @@ public class Neo4jTaskAdapter {
             throw new RuntimeException("Task '" + task.getName() + "' already exists !!! Duplicate tasks not allowed." );
         }
 
-        Node node = UTIL.getGraphDb().createNode();
+        Node node = getGraphDb().createNode();
         node.setProperty(TASK_NAME, task.getName() );
-        UTIL.getNodeNameIndex().add(node, TASK_NAME, task.getName());
+        getNodeNameIndex().add(node, TASK_NAME, task.getName());
 
         final Map<String, Object> properties = task.getProperties();
         if(properties!=null){
@@ -91,7 +96,7 @@ public class Neo4jTaskAdapter {
      * @return
      */
     public boolean doesTaskExistInDb(Task task){
-        return UTIL.getNodeNameIndex().get(TASK_NAME, task.getName()).hasNext();
+        return getNodeNameIndex().get(TASK_NAME, task.getName()).hasNext();
     }
 
     /**
@@ -133,7 +138,7 @@ public class Neo4jTaskAdapter {
         final Node toNode = getNode(toTask);
 
         boolean dependencyBroken = false;
-        final Iterable<Relationship> relationships = fromNode.getRelationships(DEPENDS_ON, Direction.OUTGOING);
+        final Iterable<Relationship> relationships = fromNode.getRelationships(DEPENDS_ON, OUTGOING);
         for (Relationship relationship : relationships) {
             final Node endNode = relationship.getEndNode();
             if(getTaskName(endNode).equals(getTaskName(toNode))){
@@ -166,24 +171,7 @@ public class Neo4jTaskAdapter {
      * @return
      */
     public Node getNodeIfExists(String taskName){
-        return UTIL.getNodeNameIndex().get(TASK_NAME, taskName).getSingle();
-    }
-
-    /**
-     * Query the db for the given task name and return as a Task object.
-     * @param taskName
-     * @return Task, or null if no task by the given name is found.
-     */
-    public Task getTask(String taskName){
-        Node node = getNodeIfExists(taskName);
-        if(node==null){
-            return null;
-        }
-
-        return task(getTaskName(node))
-                .dependsOn(getDependentTaskNames(node))
-                .properties(getTaskProperties(node))
-                .build();
+        return getNodeNameIndex().get(TASK_NAME, taskName).getSingle();
     }
 
     /**
@@ -202,7 +190,7 @@ public class Neo4jTaskAdapter {
      */
     public Set<String> getDependentTaskNames(Node node){
         Set<String> dependsOn = Sets.newHashSet();
-        for (Relationship relationship : node.getRelationships(DEPENDS_ON, Direction.OUTGOING)) {
+        for (Relationship relationship : node.getRelationships(DEPENDS_ON, OUTGOING)) {
             final Node dependentNode = relationship.getOtherNode(node);
             dependsOn.add(getTaskName(dependentNode));
         }
@@ -225,10 +213,38 @@ public class Neo4jTaskAdapter {
     }
 
     /**
+     * Query the db for the given task name and return as a Task object.
+     * @param taskName
+     * @return Task, or null if no task by the given name is found.
+     */
+    public Task getTask(String taskName){
+        Node node = getNodeIfExists(taskName);
+        if(node==null){
+            return null;
+        }
+
+        return task(getTaskName(node))
+                .dependsOn(getDependentTaskNames(node))
+                .properties(getTaskProperties(node))
+                .build();
+    }
+
+    /**
      * Begin a transaction
      * @return JTA-compliant Transaction object
      */
     public Transaction beginTransaction() {
-        return UTIL.beginTransaction();
+        return Neo4jUtil.getInstance().beginTransaction();
     }
+
+    @VisibleForTesting
+    GraphDatabaseService getGraphDb(){
+        return Neo4jUtil.getInstance().getGraphDb();
+    }
+
+    @VisibleForTesting
+    Index<Node> getNodeNameIndex(){
+        return Neo4jUtil.getInstance().getNodeNameIndex();
+    }
+
 }
