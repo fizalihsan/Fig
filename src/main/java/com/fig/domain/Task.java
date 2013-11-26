@@ -26,10 +26,6 @@ public class Task {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public Map<String, Object> getProperties() {
         return properties;
     }
