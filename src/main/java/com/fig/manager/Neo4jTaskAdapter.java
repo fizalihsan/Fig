@@ -1,24 +1,34 @@
 package com.fig.manager;
 
 import com.fig.domain.Task;
+import com.fig.domain.TaskRelations;
+import com.fig.exception.CyclicDependencyException;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphalgo.GraphAlgoFactory;
+import org.neo4j.graphalgo.PathFinder;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.traversal.Evaluators;
+import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.graphdb.traversal.Traverser;
+import org.neo4j.kernel.Traversal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 import static com.fig.domain.FigConstants.TASK_NAME;
 import static com.fig.domain.TaskBuilder.task;
 import static com.fig.domain.TaskRelations.DEPENDS_ON;
+import static java.lang.Integer.MAX_VALUE;
 import static org.neo4j.graphdb.Direction.OUTGOING;
+import static org.neo4j.kernel.Traversal.expanderForTypes;
+import static org.neo4j.kernel.Traversal.pathToString;
 
 /**
  * Adapter class between the Neo4jHelper and the rest of the application. It restricts the leakage of Neo4j related
@@ -29,6 +39,9 @@ import static org.neo4j.graphdb.Direction.OUTGOING;
  */
 public class Neo4jTaskAdapter {
     private static final Logger LOG = LoggerFactory.getLogger(Neo4jTaskAdapter.class);
+
+    private static final PathPrinter TASK_PATH_PRINTER = new PathPrinter(TASK_NAME);
+    final PathFinder<Path> OUTGOING_DEPENDENCY_FINDER = GraphAlgoFactory.allSimplePaths(expanderForTypes(DEPENDS_ON, OUTGOING), MAX_VALUE);
 
     //TODO annotate all the methods that require a transaction with EJB style annotations
     /**
@@ -121,6 +134,12 @@ public class Neo4jTaskAdapter {
      * @param toTask
      */
     public void createTaskDependency(String fromTask, String toTask){
+        //Restrict self-dependency
+        checkForSelfLoop(fromTask, toTask);
+
+        //Check for any path from toTask to fromTask to avoid loops.
+        checkForLoops(fromTask, toTask);
+
         final Node fromNode = getNode(fromTask);
         final Node toNode = getNode(toTask);
 
@@ -183,6 +202,13 @@ public class Neo4jTaskAdapter {
         return (String)node.getProperty(TASK_NAME);
     }
 
+    Task getTask(Node node){
+        return task(getTaskName(node))
+                .dependsOn(getDependentTaskNames(node))
+                .properties(getTaskProperties(node))
+                .build();
+    }
+
     /**
      * Get all the outgoing dependencies for the given node
      * @param node
@@ -219,14 +245,7 @@ public class Neo4jTaskAdapter {
      */
     public Task getTask(String taskName){
         Node node = getNodeIfExists(taskName);
-        if(node==null){
-            return null;
-        }
-
-        return task(getTaskName(node))
-                .dependsOn(getDependentTaskNames(node))
-                .properties(getTaskProperties(node))
-                .build();
+        return node==null?null:getTask(node);
     }
 
     /**
@@ -236,6 +255,39 @@ public class Neo4jTaskAdapter {
      */
     public String executeCypher(String cypher){
         return Neo4jHelper.getInstance().executeCypher(cypher);
+    }
+
+    //TODO document this method
+    public void getAncestors(String task){
+        final Traverser traverser = getTraverser(task, Direction.OUTGOING);
+        for (Path path : traverser) {
+            System.out.println(pathToString(path, TASK_PATH_PRINTER));
+        }
+        System.out.println("----------------------------------------------");
+    }
+
+    //TODO document this method
+    public void getDescendants(String task){
+        final Traverser traverser = getTraverser(task, Direction.INCOMING);
+        for (Path path : traverser) {
+            System.out.println(pathToString(path, TASK_PATH_PRINTER));
+        }
+        System.out.println("----------------------------------------------");
+    }
+
+    //TODO document this method
+    public Traverser getTraverser(String task, Direction direction){
+        TraversalDescription td = Traversal.description()
+                .breadthFirst()
+                .relationships( TaskRelations.DEPENDS_ON, direction )
+                .evaluator(Evaluators.excludeStartPosition());
+        return td.traverse(getNode(task));
+    }
+
+    //TODO document this method
+    public Iterator<Path> getPathsBetweenTasks(String fromTask, String toTask){
+        final Iterable<Path> paths = OUTGOING_DEPENDENCY_FINDER.findAllPaths(getNode(fromTask), getNode(toTask));
+        return paths.iterator();
     }
 
     /**
@@ -256,4 +308,34 @@ public class Neo4jTaskAdapter {
         return Neo4jHelper.getInstance().getNodeNameIndex();
     }
 
+    //TODO document this method
+    @VisibleForTesting
+    void checkForSelfLoop(String fromTask, String toTask){
+        if(fromTask.equals(toTask)){
+            //cyclic dependency detected
+            throw new CyclicDependencyException(
+                    Joiner.on("").join("Unable to create dependency ", fromTask, " -> ", toTask,
+                            " since there are one and the same.")
+            );
+        }
+    }
+
+    //TODO document this method
+    @VisibleForTesting
+    void checkForLoops(String fromTask, String toTask){
+        final Iterator<Path> pathsBetweenTasks = getPathsBetweenTasks(toTask, fromTask);
+        if(pathsBetweenTasks.hasNext()){
+            //cyclic dependency detected
+            StringBuilder errorMsg = new StringBuilder().append(
+                    Joiner.on("").join("Unable to create dependency ", fromTask, " -> ", toTask,
+                            " since there are existing paths from ", toTask, " -> ", fromTask, ": ")
+            );
+
+            for (; pathsBetweenTasks.hasNext(); ) {
+                final Path path = pathsBetweenTasks.next();
+                errorMsg.append(pathToString(path, TASK_PATH_PRINTER));
+            }
+            throw new CyclicDependencyException(errorMsg.toString());
+        }
+    }
 }

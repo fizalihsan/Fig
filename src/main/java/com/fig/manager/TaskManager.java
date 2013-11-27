@@ -69,6 +69,16 @@ public class TaskManager {
         return tasks;
     }
 
+    //TODO document this method
+    public void getAncestors(String task){
+        getAdapter().getAncestors(task);
+    }
+
+    //TODO document this method
+    public void getDescendants(String task){
+        getAdapter().getDescendants(task);
+    }
+
     /**
      * Properties in the given tasks are updated. Dependencies will not be updated.
      * @param tasks

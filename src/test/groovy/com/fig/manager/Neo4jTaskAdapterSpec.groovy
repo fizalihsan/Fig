@@ -1,5 +1,6 @@
 package com.fig.manager
 
+import com.fig.exception.CyclicDependencyException
 import org.neo4j.graphdb.Transaction
 import org.neo4j.test.TestGraphDatabaseFactory
 import org.slf4j.Logger
@@ -93,8 +94,7 @@ class Neo4jTaskAdapterSpec extends Specification {
         def updatedTask = task(taskName).properties(["key1":"value11", "key2":"value22"]).build()
         adapter.deleteTaskProperties(updatedTask)
 
-        then:
-        thrown(RuntimeException)
+        then: thrown(RuntimeException)
     }
 
     def "Delete properties of an existing task"() {
@@ -110,10 +110,10 @@ class Neo4jTaskAdapterSpec extends Specification {
         def expectedNode = adapter.getNode(taskName)
         expectedNode.getPropertyKeys().size() == 3
         expectedNode.hasProperty(TASK_NAME)
-        expectedNode.hasProperty("key1") == false
+        !expectedNode.hasProperty("key1")
         expectedNode.getProperty("key2") == "value2"
         expectedNode.getProperty("key3") == "value3"
-        expectedNode.hasProperty("key4") == false
+        !expectedNode.hasProperty("key4")
     }
 
     def "Update properties of an non-existant task"() {
@@ -123,8 +123,7 @@ class Neo4jTaskAdapterSpec extends Specification {
         def updatedTask = task(taskName).properties(["key1":"value11", "key2":"value22"]).build()
         adapter.updateTaskProperties(updatedTask)
 
-        then:
-        thrown(RuntimeException)
+        then: thrown(RuntimeException)
     }
 
     /*def "test deleteTask"() {
@@ -139,14 +138,14 @@ class Neo4jTaskAdapterSpec extends Specification {
     def "doesTaskExistInDb - Non-existant task"() {
         def newtask = task("Task1").build()
         when: def doesTaskExist = adapter.doesTaskExistInDb(newtask)
-        then: doesTaskExist == false
+        then: !doesTaskExist
     }
 
     def "doesTaskExistInDb - Existing task"() {
         def newtask = task("Task1").build()
         adapter.createTask(newtask)
         when: def doesTaskExist = adapter.doesTaskExistInDb(newtask)
-        then: doesTaskExist == true
+        then: doesTaskExist
     }
 
     def "Create Task Dependencies - No dependency provided"() {
@@ -314,5 +313,65 @@ class Neo4jTaskAdapterSpec extends Specification {
         expected.name == task2.name
         expected.dependsOn == task2.dependsOn
         expected.properties == task2.properties
+    }
+
+    def "checkForSelfLoop - Invalid : a->a"() {
+        def (a, b) = ["a", "a"]
+        adapter.createTask(task(a).build())
+        when: adapter.checkForLoops(a, b)
+        then: thrown CyclicDependencyException
+    }
+
+    def "checkForSelfLoop - Valid : a->b"() {
+        def (a, b) = ["a", "b"]
+        adapter.createTask(task(a).build())
+        adapter.createTask(task(b).build())
+        when: adapter.checkForLoops(a, b)
+        then: notThrown CyclicDependencyException
+    }
+
+
+    def "checkForLoops - 1. Cyclic dependency check: a->b exists, b->a is invalid "() {
+        def (a, b) = ["a", "b"]
+        adapter.createTask(task(a).build())
+        adapter.createTask(task(b).build())
+        adapter.createTaskDependency(a, b)
+        when: adapter.createTaskDependency(b, a)
+        then: thrown CyclicDependencyException
+    }
+
+    def "checkForLoops - 2. Cyclic dependency check: a->b & b->c exists, c->a is invalid "() {
+        def (a, b, c) = ["a", "b", "c"]
+        adapter.createTask(task(a).build())
+        adapter.createTask(task(b).build())
+        adapter.createTask(task(c).build())
+        adapter.createTaskDependency(a, b)
+        adapter.createTaskDependency(b, c)
+        when: adapter.checkForLoops(c, a)
+        then: thrown CyclicDependencyException
+    }
+
+    def "checkForLoops - 3. Cyclic dependency check: a->b, a->c, b->d, c->d exists, d->a is invalid "() {
+        def (a, b, c, d) = ["a", "b", "c", "d"]
+        adapter.createTask(task(a).build())
+        adapter.createTask(task(b).build())
+        adapter.createTask(task(c).build())
+        adapter.createTask(task(d).build())
+        adapter.createTaskDependency(a, b)
+        adapter.createTaskDependency(a, c)
+        adapter.createTaskDependency(b, d)
+        adapter.createTaskDependency(c, d)
+        when: adapter.checkForLoops(d, a)
+        then: thrown CyclicDependencyException
+    }
+
+    def "checkForLoops - 4. Cyclic dependency check: 1->2, 2->3, ... till 4999->5000, 5000->1 is invalid "() {
+        adapter.createTask(task("1").build())
+        2.upto(1000){ num ->
+            adapter.createTask(task(""+num).build())
+            adapter.createTaskDependency(""+(num-1), ""+num)
+        }
+        when: adapter.checkForLoops("1000", "1")
+        then: thrown CyclicDependencyException
     }
 }
