@@ -63,8 +63,8 @@ public class Task {
     public String toString() {
         final StringBuilder sb = new StringBuilder("Task{");
         sb.append("name='").append(name).append('\'');
-        sb.append(", properties=").append(properties);
         sb.append(", dependsOn=").append(dependsOn);
+        sb.append(", properties=").append(properties);
         sb.append('}');
         return sb.toString();
     }
