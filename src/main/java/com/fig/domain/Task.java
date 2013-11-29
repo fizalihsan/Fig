@@ -3,6 +3,7 @@ package com.fig.domain;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,6 +41,22 @@ public class Task {
 
     public void setDependsOn(Set<String> dependsOn) {
         this.dependsOn = Sets.newHashSet(dependsOn);
+    }
+
+    /**
+     * Method to remove task properties with null as value. Neo4j nodes do not accept null values in properties.
+     * @param task
+     */
+    public void dropNullValueProperties(){
+        if(properties!=null){
+            final Iterator<Map.Entry<String,Object>> iterator = properties.entrySet().iterator();
+            for (;iterator.hasNext();) {
+                final Object value = iterator.next().getValue();
+                if(value == null){
+                    iterator.remove();
+                }
+            }
+        }
     }
 
     @Override
