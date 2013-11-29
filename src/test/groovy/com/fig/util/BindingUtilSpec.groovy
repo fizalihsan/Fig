@@ -19,8 +19,8 @@ class BindingUtilSpec extends Specification {
 
     private static DomainA object1 = new DomainA("hello", 123);
     private static DomainB object2 = new DomainB("world", 234);
-    private static String json1 = "{\"string\":\"hello\",\"integer\":123}";
-    private static String json2 = "{\"hello\":\"world\",\"serialString\":\"world\",\"serialInteger\":234}";
+    private static String json1 = """{"string":"hello","integer":123}""";
+    private static String json2 = """{"hello":"world","serialString":"world","serialInteger":234}""";
     private static String prettyJson1 = "{\n" +
                                         "  \"string\": \"hello\",\n" +
                                         "  \"integer\": 123\n" +
@@ -60,9 +60,13 @@ class BindingUtilSpec extends Specification {
         fromJsonArray(json, clazz).size() == size
         where:
         json                                                                               | clazz         | size
-        "[{\"string\":\"hello\",\"integer\":123}, {\"string\":\"world\",\"integer\":234}]" | DomainA.class | 2
+        "[{\"string\":\"hello\",\"integer\":123}, {\"string\":\"world\",\"integer\":234}]" | DomainA[].class | 2
     }
+
 /* -------------------------- Test Domain Classes -------------------------- */
+    /**
+     *
+     */
     private static class DomainA{
         private String string;
         private int integer;
@@ -82,6 +86,9 @@ class BindingUtilSpec extends Specification {
         }
     }
 
+    /**
+     *
+     */
     private static class DomainB implements JsonSerializer<DomainB> {
         private String string;
         private int integer;
