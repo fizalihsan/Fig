@@ -73,11 +73,11 @@ class Neo4jTaskAdapterSpec extends Specification {
 
     def "Update properties of an existing task"() {
         def taskName = "Task1"
-        def newtask = task(taskName).properties(["key1":"value1"]).build()
+        def newtask = task(taskName).properties(["key1":"value1", "key3":"value33"]).build()
         adapter.createTask(newtask)
 
         when:
-        def updatedTask = task(taskName).properties(["key1":"value11", "key2":"value22"]).build()
+        def updatedTask = task(taskName).properties(["key1":"value11", "key2":"value22", "key3":null]).build()
         adapter.updateTaskProperties(updatedTask)
 
         then:

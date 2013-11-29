@@ -41,7 +41,7 @@ public class Neo4jTaskAdapter {
     private static final Logger LOG = LoggerFactory.getLogger(Neo4jTaskAdapter.class);
 
     private static final PathPrinter TASK_PATH_PRINTER = new PathPrinter(TASK_NAME);
-    final PathFinder<Path> OUTGOING_DEPENDENCY_FINDER = GraphAlgoFactory.allSimplePaths(expanderForTypes(DEPENDS_ON, OUTGOING), MAX_VALUE);
+    private static final PathFinder<Path> OUTGOING_DEPENDENCY_FINDER = GraphAlgoFactory.allSimplePaths(expanderForTypes(DEPENDS_ON, OUTGOING), MAX_VALUE);
 
     //TODO annotate all the methods that require a transaction with EJB style annotations
     /**
@@ -66,14 +66,19 @@ public class Neo4jTaskAdapter {
     }
 
     /**
-     * Update the properties in the given task
+     * Update the properties in the given task. If the task has any property with null as value, then it will be
+     * removed from the Neo4j node properties.
      * @param task
      */
     public void updateTaskProperties(Task task){
         final Node node = getNode(task.getName());
 
         for (Map.Entry<String, Object> entry : task.getProperties().entrySet()) {
-            node.setProperty(entry.getKey(), entry.getValue());
+            if(entry.getValue()==null){
+                node.removeProperty(entry.getKey());
+            } else {
+                node.setProperty(entry.getKey(), entry.getValue());
+            }
         }
     }
 
@@ -81,6 +86,7 @@ public class Neo4jTaskAdapter {
      * Delete the task properties mentioned in the input object
      * @param task
      */
+    @Deprecated //Method no more needed
     public void deleteTaskProperties(Task task){
         final Node node = getNode(task.getName());
 
