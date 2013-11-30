@@ -1,6 +1,5 @@
 package com.fig.app;
 
-import com.fig.util.WebserverUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,10 +21,10 @@ public class DependencyEngine {
     /**
      *
      */
-    void startWebserver(){
+    /*void startWebserver(){
         final WebserverUtil webserverUtil = new WebserverUtil(8080);
         webserverUtil.addHandler(WebserverUtil.getHelloWorldHandler(), "/test");
 
         webserverUtil.start();
-    }
+    }*/
 }
