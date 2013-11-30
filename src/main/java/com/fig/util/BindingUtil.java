@@ -2,6 +2,7 @@ package com.fig.util;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSerializer;
+import com.google.gson.JsonSyntaxException;
 
 /**
  * Helper class for Data binding purposes
@@ -28,10 +29,18 @@ public final class BindingUtil {
     }
 
     public static <T> T fromJson(String json, Class<T> clazz){
-        return gsonBuilder.create().fromJson(json, clazz);
+        try {
+            return gsonBuilder.create().fromJson(json, clazz);
+        } catch (JsonSyntaxException e) {
+            throw new com.fig.exception.JsonSyntaxException(e);
+        }
     }
 
     public static <T> T[] fromJsonArray(String json, Class<T[]> clazz){
-        return gsonBuilder.create().fromJson(json, clazz);
+        try {
+            return gsonBuilder.create().fromJson(json, clazz);
+        } catch (JsonSyntaxException e) {
+            throw new com.fig.exception.JsonSyntaxException(e);
+        }
     }
 }

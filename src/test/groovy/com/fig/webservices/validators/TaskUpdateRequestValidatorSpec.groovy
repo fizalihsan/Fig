@@ -26,7 +26,7 @@ class TaskUpdateRequestValidatorSpec extends Specification {
         input| status      | tags                  | jsonMessage
         null | BAD_REQUEST | ["reason", "message"] | """{"reason":"Property \\u0027request\\u0027 is missing.","message":"Request to update task(s) failed !!!"}"""
         ""   | BAD_REQUEST | ["reason", "message"] | """{"reason":"Property \\u0027request\\u0027 is missing.","message":"Request to update task(s) failed !!!"}"""
-        "a"  | BAD_REQUEST | ["reason", "message"] | """{"reason":"com.google.gson.JsonSyntaxException: java.lang.IllegalStateException: Expected BEGIN_ARRAY but was STRING at line 1 column 1","message":"Invalid JSON sent in request"}"""
+        "a"  | BAD_REQUEST | ["reason", "message"] | """{"reason":"com.fig.exception.JsonSyntaxException: com.google.gson.JsonSyntaxException: java.lang.IllegalStateException: Expected BEGIN_ARRAY but was STRING at line 1 column 1","message":"Invalid JSON sent in request"}"""
         """[{"name":"a1"}]""" | OK | ["requestId", "requestedTime", "message"] | """"message":"Request accepted successfully. "}"""
         """[{"name":"a1"}, {"name":"b1"}]""" | OK | ["requestId", "requestedTime", "message"] | """"message":"Request accepted successfully. "}"""
         """[{"name":"a1", "properties":{"key1":"value1"}}]""" | OK | ["requestId", "requestedTime", "message"] | """"message":"Request accepted successfully. "}"""

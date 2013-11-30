@@ -3,7 +3,7 @@ package com.fig.webservices.validators;
 import com.fig.annotations.ThreadSafe;
 import com.fig.domain.Task;
 import com.fig.domain.ValidationResponse;
-import com.google.gson.JsonSyntaxException;
+import com.fig.exception.JsonSyntaxException;
 import com.gs.collections.api.block.function.Function;
 
 import static com.fig.domain.ValidationResponse.Builder.response;
