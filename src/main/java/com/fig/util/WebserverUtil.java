@@ -1,25 +1,6 @@
 package com.fig.util;
 
 
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.servlet.ServletContainer;
-import org.glassfish.jersey.servlet.ServletProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Map;
-
 /**
  * Comment here about the class
  * User: Fizal
@@ -27,7 +8,7 @@ import java.util.Map;
  * Time: 7:20 PM
  */
 public class WebserverUtil {
-    private static final Logger LOG = LoggerFactory.getLogger(WebserverUtil.class);
+    /*private static final Logger LOG = LoggerFactory.getLogger(WebserverUtil.class);
 
     private final int httpPort;
     private final Server server;
@@ -48,7 +29,7 @@ public class WebserverUtil {
         servletHolder.setInitParameter(ServletProperties.JAXRS_APPLICATION_CLASS, "com.fig.webservices.MainApplication");
         servletHolder.setInitOrder(0);
 
-        context.addServlet(servletHolder, "/*");
+        context.addServlet(servletHolder, "*//*");
     }
 
 
@@ -65,9 +46,9 @@ public class WebserverUtil {
         contexts.addHandler(handler);
     }
 
-    /**
+    *//**
      * Start the webserver.
-*/
+*//*
     public void start(){
         //TODO don't start the server if no handlers are registered
         try {
@@ -79,10 +60,10 @@ public class WebserverUtil {
         }
     }
 
-    /**
+    *//**
      * Register a hook to shutdown the web server when the JVM shuts down
      *
-    */
+    *//*
     private void registerShutdownHook() {
         // Registers a shutdown hook for the Neo4j instance so that it
         // shuts down nicely when the VM exits (even if you "Ctrl-C" the
@@ -102,10 +83,10 @@ public class WebserverUtil {
         });
     }
 
-    /**
+    *//**
      * Returns a test handler which prints "Hello World"
      * @return
-    */
+    *//*
     public static Handler getHelloWorldHandler(){
         return new AbstractHandler() {
             private void printRequest(HttpServletRequest request){
@@ -115,7 +96,7 @@ public class WebserverUtil {
                 }
             }
 
-            /*
+            *//*
              * Handler that returns a static "Hello World" text
              * @param target the target of the request, which is either a URI or a name from a named dispatcher.
              * @param baseRequest the Jetty mutable request object, which is always unwrapped.
@@ -123,7 +104,7 @@ public class WebserverUtil {
              * @param response the response, which may have been wrapped by a filter or servlet.
              * @throws IOException
              * @throws ServletException
-            */
+            *//*
             @Override
             public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
                 printRequest(request);
@@ -133,5 +114,5 @@ public class WebserverUtil {
                 baseRequest.setHandled(true);
             }
         };
-    }
+    }*/
 }
