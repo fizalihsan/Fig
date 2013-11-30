@@ -1,11 +1,11 @@
 package com.fig.block.procedure;
 
 import com.fig.annotations.ThreadSafe;
-import com.fig.block.predicate.TwinCheckPredicate;
+import com.fig.block.predicate.SelfTaskDependencyCheckPredicate;
+import com.fig.domain.TaskDependency;
 import com.fig.manager.Neo4jTaskAdapter;
 import com.google.common.annotations.VisibleForTesting;
 import com.gs.collections.api.block.procedure.Procedure;
-import com.gs.collections.api.tuple.Pair;
 
 import java.util.Collection;
 
@@ -16,21 +16,23 @@ import java.util.Collection;
  * Time: 6:26 PM
  */
 @ThreadSafe
-public class TaskDependencyCreator implements Procedure<Collection<Pair<String, String>>> {
-    private static final TwinCheckPredicate<String, String> TWIN_CHECK_PREDICATE = new TwinCheckPredicate<>();
+public class TaskDependencyCreator implements Procedure<Collection<TaskDependency>> {
+    private static final SelfTaskDependencyCheckPredicate SELF_DEPENDENCY_CHECK = new SelfTaskDependencyCheckPredicate();
 
     private final Neo4jTaskAdapter adapter = new Neo4jTaskAdapter();
 
     @Override
-    public void value(Collection<Pair<String, String>> taskNamePairs) {
-        for (Pair<String, String> taskNamePair : taskNamePairs) {
-            boolean noSelfDependency = !TWIN_CHECK_PREDICATE.accept(taskNamePair); //Restrict self-dependency
+    public void value(Collection<TaskDependency> taskDependencies) {
+        for (TaskDependency dependency : taskDependencies) {
+            boolean noSelfDependency = SELF_DEPENDENCY_CHECK.accept(dependency); //Restrict self-dependency
 
             //TODO implement logic to restrict cyclic-dependency
             boolean noCyclicDependency = true; //Restrict cyclic-dependency
 
             if(noSelfDependency && noCyclicDependency){
-                getAdapter().createTaskDependency(taskNamePair.getOne(), taskNamePair.getTwo());
+                for (String toTask : dependency.getToTasks()) {
+                    getAdapter().createTaskDependency(dependency.getFromTask(), toTask);
+                }
             }
         }
     }

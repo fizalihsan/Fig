@@ -3,8 +3,8 @@ package com.fig.manager;
 import com.fig.annotations.Transactional;
 import com.fig.block.procedure.*;
 import com.fig.domain.Task;
+import com.fig.domain.TaskDependency;
 import com.google.common.annotations.VisibleForTesting;
-import com.gs.collections.api.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,8 +30,8 @@ public class TaskManager {
     private static final TransactionWrapper<Collection<Task>> TASK_CREATOR = new TransactionWrapper<>(new TaskCreator());
     private static final TransactionWrapper<Collection<Task>> TASK_PROPERTY_UPDATOR = new TransactionWrapper<>(new TaskPropertyUpdator());
     private static final TransactionWrapper<Collection<String>> TASK_DELETOR = new TransactionWrapper<>(new TaskDeletor());
-    private static final TransactionWrapper<Collection<Pair<String, String>>> TASK_DEPENDENCY_CREATOR = new TransactionWrapper<>(new TaskDependencyCreator());
-    private static final TransactionWrapper<Collection<Pair<String, String>>> TASK_DEPENDENCY_DELETOR = new TransactionWrapper<>(new TaskDependencyDeletor());
+    private static final TransactionWrapper<Collection<TaskDependency>> TASK_DEPENDENCY_CREATOR = new TransactionWrapper<>(new TaskDependencyCreator());
+    private static final TransactionWrapper<Collection<TaskDependency>> TASK_DEPENDENCY_DELETOR = new TransactionWrapper<>(new TaskDependencyDeletor());
 
     /**
      * For each task provided, this method does the following
@@ -103,24 +103,24 @@ public class TaskManager {
 
     /**
      * Creates dependencies between the given pair of tasks
-     * @param taskNamePairs
+     * @param taskDependencies
      */
     @Transactional
-    public void createTaskDependencies(Collection<Pair<String, String>> taskNamePairs){
-        LOG.info("Creating task dependencies for the following {} pairs: {}", taskNamePairs.size(), taskNamePairs);
-        TASK_DEPENDENCY_CREATOR.value(taskNamePairs);
-        LOG.info("{} task dependencies created successfully...", taskNamePairs.size());
+    public void createTaskDependencies(Collection<TaskDependency> taskDependencies){
+        LOG.info("Creating task dependencies for the following {} pairs: {}", taskDependencies.size(), taskDependencies);
+        TASK_DEPENDENCY_CREATOR.value(taskDependencies);
+        LOG.info("{} task dependencies created successfully...", taskDependencies.size());
     }
 
     /**
      * Deletes dependencies between the given pair of tasks
-     * @param taskNamePairs
+     * @param taskDependencies
      */
     @Transactional
-    public void deleteDependencies(Collection<Pair<String, String>> taskNamePairs){
-        LOG.info("Deleting task dependencies for the following {} pairs: {}", taskNamePairs.size(), taskNamePairs);
-        TASK_DEPENDENCY_DELETOR.value(taskNamePairs);
-        LOG.info("{} task dependencies deleted successfully...", taskNamePairs.size());
+    public void deleteDependencies(Collection<TaskDependency> taskDependencies){
+        LOG.info("Deleting task dependencies for the following {} pairs: {}", taskDependencies.size(), taskDependencies);
+        TASK_DEPENDENCY_DELETOR.value(taskDependencies);
+        LOG.info("{} task dependencies deleted successfully...", taskDependencies.size());
     }
 
     @VisibleForTesting

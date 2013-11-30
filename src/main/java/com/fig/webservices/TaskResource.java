@@ -46,7 +46,7 @@ public class TaskResource {
     @POST
     @Produces({MediaType.APPLICATION_JSON})
     @Path("/create")
-    public Response create(@DefaultValue("[]") @FormParam("request") String request) {
+    public Response create(@FormParam("request") String request) {
         final ValidationResponse response = TASK_CREATE_REQUEST_VALIDATOR.valueOf(request);
 
         if(response.getResponse().getStatusInfo().equals(OK)){

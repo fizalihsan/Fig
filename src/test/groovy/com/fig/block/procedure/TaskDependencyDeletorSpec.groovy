@@ -1,8 +1,7 @@
 package com.fig.block.procedure
+import com.fig.domain.TaskDependency
 import com.fig.manager.Neo4jTaskAdapter
 import spock.lang.Specification
-
-import static com.gs.collections.impl.tuple.Tuples.pair
 /**
  * Comment here about the class
  * User: Fizal
@@ -16,8 +15,8 @@ class TaskDependencyDeletorSpec extends Specification {
         def adapter = Mock(Neo4jTaskAdapter)
         creator.getAdapter() >> adapter
 
-        def pair1 = pair("abc1", "xyz1");
-        def pair2 = pair("abc2", "xyz2");
+        def pair1 = new TaskDependency("abc1", ["xyz1"]);
+        def pair2 = new TaskDependency("abc2", ["xyz2"]);
         when:
         creator.value([pair1, pair2])
 

@@ -1,12 +1,11 @@
 package com.fig.manager
-
+import com.fig.domain.TaskDependency
 import org.neo4j.test.TestGraphDatabaseFactory
 import spock.lang.Shared
 import spock.lang.Specification
 
 import static com.fig.domain.TaskBuilder.task
 import static com.google.common.collect.Sets.newHashSet
-import static com.gs.collections.impl.tuple.Tuples.twin
 /**
  * Comment here about the class
  * User: Fizal
@@ -76,7 +75,7 @@ class TaskManagerSpec extends Specification {
     }
 
     def "createTaskDependencies"() {
-        when: mgr.createTaskDependencies([twin("Task4", "Task1")])
+        when: mgr.createTaskDependencies([new TaskDependency("Task4", ["Task1"])])
         then:
         def task = mgr.getTask("Task4")
         task.dependsOn.size() == 2
@@ -84,7 +83,7 @@ class TaskManagerSpec extends Specification {
     }
 
     def "deleteDependencies"() {
-        when: mgr.deleteDependencies([twin("Task4", "Task4")])
+        when: mgr.deleteDependencies([new TaskDependency("Task4", ["Task4"])])
         then: mgr.getTask("Task4").dependsOn.isEmpty()
     }
 }
