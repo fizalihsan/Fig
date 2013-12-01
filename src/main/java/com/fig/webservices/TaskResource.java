@@ -120,6 +120,15 @@ public class TaskResource {
         return null;
     }
 
+    //Only for testing purposes
+    @DELETE
+    @Produces({MediaType.APPLICATION_JSON})
+    @Path("/deleteall")
+    public Response deleteAll() {
+        getTaskManager().deleteAll();
+        return Response.ok().build();
+    }
+
     public TaskManager getTaskManager() {
         if(this.taskManager == null){
             this.taskManager = new TaskManager();

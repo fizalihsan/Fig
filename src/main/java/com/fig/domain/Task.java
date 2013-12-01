@@ -3,6 +3,7 @@ package com.fig.domain;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -39,7 +40,7 @@ public class Task {
         return dependsOn;
     }
 
-    public void setDependsOn(Set<String> dependsOn) {
+    public void setDependsOn(Collection<String> dependsOn) {
         this.dependsOn = Sets.newHashSet(dependsOn);
     }
 

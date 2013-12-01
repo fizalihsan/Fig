@@ -2,8 +2,8 @@ package com.fig.domain;
 
 import com.fig.annotations.Immutable;
 
+import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -26,7 +26,7 @@ public class TaskBuilder {
         return new TaskBuilder(name);
     }
 
-    public TaskBuilder dependsOn(Set<String> taskNames){
+    public TaskBuilder dependsOn(Collection<String> taskNames){
         this.task.setDependsOn(taskNames);
         return this;
     }

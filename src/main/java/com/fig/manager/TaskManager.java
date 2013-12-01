@@ -123,6 +123,12 @@ public class TaskManager {
         LOG.info("{} task dependencies deleted successfully...", taskDependencies.size());
     }
 
+    //Only for testing purposes
+    @Transactional
+    public void deleteAll(){
+        getAdapter().executeCypher("START n=node(*) MATCH n-[r?]-() DELETE n, r;");
+    }
+
     @VisibleForTesting
     Neo4jTaskAdapter getAdapter(){
         if(this.adapter == null){
