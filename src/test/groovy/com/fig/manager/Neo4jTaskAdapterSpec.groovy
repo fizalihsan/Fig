@@ -87,35 +87,6 @@ class Neo4jTaskAdapterSpec extends Specification {
         expectedNode.getProperty("key2") == "value22"
     }
 
-    def "Delete properties of an non-existant task"() {
-        def taskName = "Task1"
-
-        when:
-        def updatedTask = task(taskName).properties(["key1":"value11", "key2":"value22"]).build()
-        adapter.deleteTaskProperties(updatedTask)
-
-        then: thrown(RuntimeException)
-    }
-
-    def "Delete properties of an existing task"() {
-        def taskName = "Task1"
-        def newtask = task(taskName).properties(["key1":"value1", "key2":"value2", "key3":"value3"]).build()
-        adapter.createTask(newtask)
-
-        when:
-        def tempTask = task(taskName).properties(["key1":"value1", "key4":"value4", TASK_NAME:taskName]).build()
-        adapter.deleteTaskProperties(tempTask)
-
-        then:
-        def expectedNode = adapter.getNode(taskName)
-        expectedNode.getPropertyKeys().size() == 3
-        expectedNode.hasProperty(TASK_NAME)
-        !expectedNode.hasProperty("key1")
-        expectedNode.getProperty("key2") == "value2"
-        expectedNode.getProperty("key3") == "value3"
-        !expectedNode.hasProperty("key4")
-    }
-
     def "Update properties of an non-existant task"() {
         def taskName = "Task1"
 

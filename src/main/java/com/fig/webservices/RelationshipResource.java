@@ -30,6 +30,7 @@ public class RelationshipResource {
     @POST
     @Produces({MediaType.APPLICATION_JSON})
     @Path("/create")
+    @SuppressWarnings("unchecked")
     public Response create(@FormParam("request") String request) {
         final ValidationResponse response = TASK_DEPENDENCY_REQUEST_VALIDATOR.valueOf(request);
 
@@ -43,6 +44,7 @@ public class RelationshipResource {
     @DELETE
     @Produces({MediaType.APPLICATION_JSON})
     @Path("/delete")
+    @SuppressWarnings("unchecked")
     public Response delete(@FormParam("request") String request) {
         final ValidationResponse response = TASK_DEPENDENCY_REQUEST_VALIDATOR.valueOf(request);
 

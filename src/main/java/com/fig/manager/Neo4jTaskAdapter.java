@@ -83,22 +83,6 @@ public class Neo4jTaskAdapter {
     }
 
     /**
-     * Delete the task properties mentioned in the input object
-     * @param task
-     */
-    @Deprecated //Method no more needed
-    public void deleteTaskProperties(Task task){
-        final Node node = getNode(task.getName());
-
-        for (Map.Entry<String, Object> entry : task.getProperties().entrySet()) {
-            final String key = entry.getKey();
-            if(!key.equals(TASK_NAME)){ //Task name property should not be deleted.
-                node.removeProperty(key);
-            }
-        }
-    }
-
-    /**
      * Delete the given task
      * @param taskName
      */
