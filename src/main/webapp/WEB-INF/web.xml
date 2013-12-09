@@ -10,4 +10,48 @@
         <load-on-startup>1</load-on-startup>
     </servlet>
 
+
+    <security-constraint>
+        <!-- Specifies the part of the application to be authenticated -->
+        <web-resource-collection>
+            <web-resource-name>task create/update/delete</web-resource-name>
+            <url-pattern>/fig/*</url-pattern>
+            <!-- Omitting http-method tag will secure all access to the url-pattern above -->
+            <http-method>POST</http-method>
+            <http-method>PUT</http-method>
+            <http-method>DELETE</http-method>
+            <http-method>GET</http-method>
+        </web-resource-collection>
+
+        <!-- Specifies the authorization constraints: Only admin and manager roles are authorized to access the resources.
+            <role-name>*</role-name> would mean that everyone has access.
+        -->
+        <auth-constraint>
+            <role-name>admin</role-name>
+            <role-name>manager</role-name>
+        </auth-constraint>
+
+        <!-- To enforce HTTPS access. If a user tries to access the URL pattern with HTTP, she will be redirected to an HTTPS-based URL -->
+        <user-data-constraint>
+            <!--
+                NONE - means redirecting to SSL is not required
+                CONFIDENTIAL - means to enforce HTTPS
+            -->
+            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+        </user-data-constraint>
+    </security-constraint>
+
+    <login-config>
+        <!-- Authentication methods: BASIC, DIGEST, CLIENT_CERT -->
+        <auth-method>BASIC</auth-method>
+
+        <realm-name>jaxrs</realm-name>
+    </login-config>
+
+    <!-- Every role defined in the <auth-constraint> must be defined here as well.  -->
+    <security-role>
+        <role-name>admin</role-name>
+        <role-name>manager</role-name>
+    </security-role>
+
 </web-app>
