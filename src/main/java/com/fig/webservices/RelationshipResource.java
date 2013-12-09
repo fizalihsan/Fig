@@ -13,8 +13,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-import static javax.ws.rs.core.Response.Status.OK;
-
 /**
  * Comment here about the class
  * User: Fizal
@@ -34,7 +32,7 @@ public class RelationshipResource {
     public Response create(@FormParam("request") String request) {
         final ValidationResponse response = TASK_DEPENDENCY_REQUEST_VALIDATOR.valueOf(request);
 
-        if(response.getResponse().getStatusInfo().equals(OK)){
+        if(response.isResponseStatusOK()){
             final List<TaskDependency> taskDependencies = (List<TaskDependency>)response.getOutput();
             getTaskManager().createTaskDependencies(taskDependencies);
         }
@@ -48,7 +46,7 @@ public class RelationshipResource {
     public Response delete(@FormParam("request") String request) {
         final ValidationResponse response = TASK_DEPENDENCY_REQUEST_VALIDATOR.valueOf(request);
 
-        if(response.getResponse().getStatusInfo().equals(OK)){
+        if(response.isResponseStatusOK()){
             final List<TaskDependency> taskDependencies = (List<TaskDependency>)response.getOutput();
             getTaskManager().deleteDependencies(taskDependencies);
         }

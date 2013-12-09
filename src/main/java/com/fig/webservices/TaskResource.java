@@ -3,10 +3,10 @@ package com.fig.webservices;
 import com.fig.domain.ErrorResponse;
 import com.fig.domain.SuccessResponse;
 import com.fig.domain.Task;
+import com.fig.domain.ValidationResponse;
 import com.fig.manager.TaskManager;
 import com.fig.webservices.validators.TaskCreateRequestValidator;
 import com.fig.webservices.validators.TaskUpdateRequestValidator;
-import com.fig.domain.ValidationResponse;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -22,9 +22,9 @@ import java.util.Collections;
 import java.util.Set;
 
 import static com.fig.util.BindingUtil.toJson;
+import static com.fig.util.BindingUtil.toPrettyJson;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.OK;
 import static javax.ws.rs.core.Response.ok;
 import static javax.ws.rs.core.Response.status;
 
@@ -45,17 +45,20 @@ public class TaskResource {
 
     @POST
     @Produces({MediaType.APPLICATION_JSON})
-    @Path("/create")
     public Response create(@FormParam("request") String request) {
         final ValidationResponse response = TASK_CREATE_REQUEST_VALIDATOR.valueOf(request);
 
-        if(response.getResponse().getStatusInfo().equals(OK)){
+        if(response.isResponseStatusOK()){
             final Task[] tasks = (Task[])response.getOutput();
             LOG.info("Request received to create {} tasks: {}", tasks.length);
 
             final SuccessResponse successResponse = response.getSuccessResponse();
             final String requestId = successResponse.getRequestId();
-            getTaskManager().createTasks(Lists.newArrayList(tasks));
+            try {
+                getTaskManager().createTasks(Lists.newArrayList(tasks));
+            } catch (Exception e) {
+                return status(BAD_REQUEST).entity(toJson(new ErrorResponse(e.toString(), "Error processing request: " + request))).build();
+            }
         }
 
         return response.getResponse();
@@ -68,8 +71,8 @@ public class TaskResource {
      */
     @GET
     @Produces({MediaType.TEXT_PLAIN}) //TODO return both json and plain text formats
-    @Path("/query/{task}")
-    public Response query(@PathParam("task") String taskNames) {
+    @Path("/{taskNames}")
+    public Response query(@PathParam("taskNames") String taskNames) {
         //Parse the input
         Set<String> taskNameSet = parseTaskNames(taskNames);
 
@@ -82,7 +85,12 @@ public class TaskResource {
         }
 
         //Query the database
-        final Set<Task> tasks = getTaskManager().getTasks(taskNameSet);
+        Set<Task> tasks;
+        try {
+            tasks = getTaskManager().getTasks(taskNameSet);
+        } catch (Exception e) {
+            return status(BAD_REQUEST).entity(toJson(new ErrorResponse(e.toString(), "Error querying tasks: " + taskNames))).build();
+        }
 
         if(tasks.isEmpty()){
             return ok().
@@ -90,7 +98,7 @@ public class TaskResource {
                     build();
         }
 
-        return Response.ok(toJson(tasks)).build();
+        return Response.ok(toPrettyJson(tasks)).build();
     }
 
     /**
@@ -100,14 +108,17 @@ public class TaskResource {
      */
     @PUT
     @Produces({MediaType.APPLICATION_JSON})
-    @Path("/update")
     public Response update(@FormParam("request") String request){
         final ValidationResponse response = TASK_UPDATE_REQUEST_VALIDATOR.valueOf(request);
 
-        if(response.getResponse().getStatusInfo().equals(OK)){
+        if(response.isResponseStatusOK()){
             Task[] tasks = (Task[]) response.getOutput();
             LOG.info("Request received to update {} tasks.", tasks.length);
-            getTaskManager().updateTaskProperties(Lists.newArrayList(tasks));
+            try {
+                getTaskManager().updateTaskProperties(Lists.newArrayList(tasks));
+            } catch (Exception e) {
+                return status(BAD_REQUEST).entity(toJson(new ErrorResponse(e.toString(), "Error processing request: " + request))).build();
+            }
         }
 
         return response.getResponse();
@@ -115,8 +126,8 @@ public class TaskResource {
 
     @DELETE
     @Produces({MediaType.APPLICATION_JSON})
-    @Path("/delete/{task}") //TODO fix the pattern
-    public Response delete(@PathParam("task") String task) {
+    @Path("/{taskNames}") //TODO fix the pattern
+    public Response delete(@PathParam("taskNames") String taskNames) {
         return null;
     }
 

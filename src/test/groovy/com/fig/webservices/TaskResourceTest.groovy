@@ -5,6 +5,7 @@ import spock.lang.Specification
 import javax.ws.rs.core.Response
 
 import static com.fig.domain.TaskBuilder.task
+import static com.fig.util.BindingUtil.toPrettyJson
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST
 import static javax.ws.rs.core.Response.Status.OK
 /**
@@ -39,30 +40,35 @@ class TaskResourceTest extends Specification {
         response.getStatusInfo() == Response.Status.BAD_REQUEST
     }
 
+    static def taskB = task("b").properties(["key": "value"]).dependsOn(["y", "z"] as Set).build()
+    static def taskX = task("x").properties(["key1": "value1", "key2": "value2"]).dependsOn(["y", "z"] as Set).build()
+    static def taskY = task("y").build()
+    static def taskZ = task("z").build()
     def "query"(){
         def resource = Spy(TaskResource)
         def taskManager = Spy(TaskManager)
         resource.getTaskManager() >> taskManager
         taskManager.getTask("a") >> null
-        taskManager.getTask("b") >> task("b").properties(["key": "value"]).dependsOn(["y", "z"] as Set).build()
-        taskManager.getTask("x") >> task("x").properties(["key1": "value1", "key2": "value2"]).dependsOn(["y", "z"] as Set).build()
-        taskManager.getTask("y") >> task("y").build()
-        taskManager.getTask("z") >> task("z").build()
+        taskManager.getTask("b") >> taskB
+        taskManager.getTask("x") >> taskX
+        taskManager.getTask("y") >> taskY
+        taskManager.getTask("z") >> taskZ
 
         expect:
         Response response = resource.query(input)
         response.getStatus() == status.getStatusCode()
-        response.getEntity().toString().endsWith(jsonMessage)
-        tags.each { tag -> response.getEntity().toString().contains(tag) }
+        def entity = response.getEntity().toString()
+        entity.equals(jsonMessage) || entity.endsWith(jsonMessage)
+        tags.each { tag -> entity.contains(tag) }
 
         where:
         input | status      | tags                                      | jsonMessage
         null  | BAD_REQUEST | ["reason", "message"]                     | "{\"reason\":\"No task name provided in the request\",\"message\":\"Unable to query for tasks\"}"
         ""    | BAD_REQUEST | ["reason", "message"]                     | "{\"reason\":\"No task name provided in the request\",\"message\":\"Unable to query for tasks\"}"
         "a"   | OK          | ["requestId", "requestedTime", "message"] | "\"message\":\"Task not found in the database by name: [a]\"}"
-        "b"   | OK          | ["requestId", "requestedTime", "message"] | """[{"name":"b","dependsOn":["z","y"],"properties":{"key":"value"}}]"""
-        "x"   | OK          | ["requestId", "requestedTime", "message"] | """[{"name":"x","dependsOn":["z","y"],"properties":{"key2":"value2","key1":"value1"}}]"""
-        "y,z" | OK          | ["requestId", "requestedTime", "message"] | """[{"name":"z"},{"name":"y"}]"""
+        "b"   | OK          | ["requestId", "requestedTime", "message"] | toPrettyJson([taskB])
+        "x"   | OK          | ["requestId", "requestedTime", "message"] | toPrettyJson([taskX])
+        "y,z" | OK          | ["requestId", "requestedTime", "message"] | toPrettyJson([taskZ, taskY])
     }
 
     def "update - Valid Response"() {

@@ -36,6 +36,9 @@ public class ValidationResponse {
         return successResponse;
     }
 
+    public boolean isResponseStatusOK(){
+        return response.getStatus() == Response.Status.OK.getStatusCode();
+    }
 
     /**
      *

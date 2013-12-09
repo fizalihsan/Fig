@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Comment here about the class
+ * Represents a task and its dependencies
  * User: Fizal
  * Date: 11/20/13
  * Time: 4:18 PM
