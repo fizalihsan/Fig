@@ -3,6 +3,7 @@ apply plugin: 'war'
 apply plugin: 'cargo' //for auto-deployment to web container like tomcat
 apply plugin: 'sonar-runner' //sonar server should be running to execute this.
 apply plugin: 'groovy' //for Spock testing
+apply plugin: 'idea' //for creating Intellij module file automatically. <gradle ideaModule>
 //apply plugin: 'miredot'
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Configuration Properties ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 sourceCompatibility = 1.7
@@ -53,7 +54,9 @@ dependencies {
 
     // HTTP Client -
     // HTTP Builder - Groovy REST Client
-    compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.5.2'
+    compile('org.codehaus.groovy.modules.http-builder:http-builder:0.5.2'){
+        exclude group: 'org.codehaus.groovy' //excluding older version of groovy 
+    }
 
     //Logging frameworks
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.5'
