@@ -3,7 +3,7 @@ apply plugin: 'war'
 apply plugin: 'cargo' //for auto-deployment to web container like tomcat
 apply plugin: 'sonar-runner' //sonar server should be running to execute this.
 apply plugin: 'groovy' //for Spock testing
-
+//apply plugin: 'miredot'
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Configuration Properties ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 sourceCompatibility = 1.7
 version = '0.0.1'
@@ -60,6 +60,9 @@ dependencies {
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.0.13'
     compile 'org.codehaus.groovy:groovy-all:2.1.9' //needed for logback groovy config
 
+    //Miredot
+    /*compile 'com.qmino:miredot-maven-plugin:1.2.1'*/
+
     //Neo4j Database
     //Revisit this later. We don't need all the neo4j libraries from top-level.
     compile "org.neo4j:neo4j:${neo4jVersion}",
@@ -68,8 +71,13 @@ dependencies {
         exclude group: 'janino' //pulls 2.5.10, but we need 2.6.1
         exclude group: 'ch.qos.logback'
         exclude group: 'com.sun.jersey' //old version conflicts with Jersey 2
+        //exclude group: 'org.mortbay.jetty' //Excluding servlet-api for Embedded Tomcat to work
     }
     compile "org.codehaus.janino:janino:2.6.1"
+
+    //Tinkerpop libraries
+    /*compile 'com.tinkerpop.blueprints:blueprints-core:2.4.0'
+    compile 'com.tinkerpop.blueprints:blueprints-neo4j-graph:2.4.0'*/
 
     //Webservice Libraries
     compile "javax.ws.rs:javax.ws.rs-api:2.0"
@@ -84,6 +92,9 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
     testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
     testCompile group: "org.neo4j", name: "neo4j-kernel", version: "${neo4jVersion}", classifier: "tests"
+    /*testCompile 'org.apache.tomcat:tomcat-catalina:7.0.42'
+    testCompile 'org.apache.tomcat:tomcat-coyote:7.0.42'
+    testCompile 'org.apache.tomcat:tomcat-jasper:7.0.42'*/
 
     //YAML (Snakeyaml library)
     compile 'org.yaml:snakeyaml:1.13'
