@@ -43,6 +43,12 @@ final jerseyVersion = '2.4'
 final neo4jVersion = '1.9.5'
 
 dependencies {
+    //ActiveMQ libraries
+    // NOTE: The below activemq jar comes with both classes and java files in it. Becuase of that, during war build
+    // java files in them get compiled and becomes a part of the war file which causes the webapp to fail.
+    // As a makeshift solution, delete the files from /WEB-INF/classes folder manually.
+    compile "org.apache.activemq:activemq-all:5.9.0"
+
     //Collection Libraries
     compile "com.goldmansachs:gs-collections-api:${gsCollectionsVersion}",
             "com.goldmansachs:gs-collections:${gsCollectionsVersion}",
