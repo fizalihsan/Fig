@@ -42,4 +42,13 @@ public class ServiceRequest implements Serializable{
         return this;
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("ServiceRequest{");
+        sb.append("requestType=").append(requestType);
+        sb.append(", json='").append(json).append('\'');
+        sb.append(", validationResponse=").append(validationResponse);
+        sb.append('}');
+        return sb.toString();
+    }
 }
