@@ -1,4 +1,11 @@
 # Neo4J Configurations
 neo4jConfig:
-    dbLocation: C:/apps/Neo4j Community/graph-db
+    dbLocation: C:/temp/graph-db
     enableWebserver: false
+
+
+activeMQConfig:
+    brokerName: fig
+    brokerURI: "tcp://localhost:61616"
+    dataFolderLocation: "C:/temp/ems_data"
+    requestQueue: "fig.RequestQueue"
