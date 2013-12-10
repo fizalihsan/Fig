@@ -1,7 +1,9 @@
 package com.fig.domain;
 
+import com.fig.annotations.Immutable;
 import com.google.common.collect.Lists;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -10,9 +12,12 @@ import java.util.List;
  * Date: 11/30/13
  * Time: 2:02 PM
  */
-public class TaskDependency {
+@Immutable
+public class TaskDependency implements Serializable{
     private String fromTask;
     private List<String> toTasks;
+
+    private static final long serialVersionUID = 1L;
 
     public TaskDependency(String fromTask, List<String> toTasks) {
         this.fromTask = fromTask;

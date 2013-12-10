@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
+import java.io.Serializable;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Type;
 import java.net.InetAddress;
@@ -22,12 +23,14 @@ import java.util.UUID;
  * Time: 6:57 PM
  */
 @Immutable
-public class SuccessResponse implements JsonSerializer<SuccessResponse>{
+public class SuccessResponse implements JsonSerializer<SuccessResponse>, Serializable{
     private String hostName;
     private String processId;
     private String requestId;
     private final Date requestedTime;
     private String message;
+
+    private static final long serialVersionUID = 1L;
 
     public SuccessResponse(String message) {
         this.message = message;

@@ -4,6 +4,8 @@ import com.fig.annotations.ThreadSafe;
 
 import javax.ws.rs.core.Response;
 
+import java.io.Serializable;
+
 import static com.fig.util.BindingUtil.toJson;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.ok;
@@ -16,10 +18,12 @@ import static javax.ws.rs.core.Response.status;
  * Time: 6:49 PM
  */
 @ThreadSafe
-public class ValidationResponse {
-    private Response response;
+public class ValidationResponse implements Serializable{
+    private transient Response response; //Response is not serializable, so marking it transient to be able to send this object to EMS queue
     private Object output;
     private SuccessResponse successResponse;
+
+    private static final long serialVersionUID = 1L;
 
     private ValidationResponse() {
     }

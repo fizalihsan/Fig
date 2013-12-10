@@ -3,6 +3,7 @@ package com.fig.domain;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -14,10 +15,12 @@ import java.util.Set;
  * Date: 11/20/13
  * Time: 4:18 PM
  */
-public class Task {
+public class Task implements Serializable{
     private String name;
     private Set<String> dependsOn;
     private Map<String, Object> properties;
+
+    private static final long serialVersionUID = 1L;
 
     //use builder to construct
     Task(String name) {
@@ -29,7 +32,7 @@ public class Task {
     }
 
     public Map<String, Object> getProperties() {
-        return properties;
+        return Maps.newHashMap(properties);
     }
 
     public void setProperties(Map<String, Object> properties) {
@@ -37,7 +40,7 @@ public class Task {
     }
 
     public Set<String> getDependsOn() {
-        return dependsOn;
+        return Sets.newHashSet(dependsOn);
     }
 
     public void setDependsOn(Collection<String> dependsOn) {
