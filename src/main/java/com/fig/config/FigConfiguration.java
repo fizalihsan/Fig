@@ -16,6 +16,7 @@ import java.nio.file.Paths;
  */
 public class FigConfiguration {
     private Neo4jConfig neo4jConfig;
+    private ActiveMQConfig activeMQConfig;
     private static FigConfiguration figConfiguration;
     //TODO remove this hardcoding
     private static final String CONFIG_FILE = "C:\\Fizal\\WorkArea\\SourceCode\\GitHubHome\\Fig\\src\\main\\resources\\figconfig.yaml";
@@ -47,10 +48,19 @@ public class FigConfiguration {
         this.neo4jConfig = neo4jConfig;
     }
 
+    public ActiveMQConfig getActiveMQConfig() {
+        return activeMQConfig;
+    }
+
+    public void setActiveMQConfig(ActiveMQConfig activeMQConfig) {
+        this.activeMQConfig = activeMQConfig;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("FigConfiguration{");
-        sb.append(neo4jConfig);
+        sb.append("neo4jConfig=").append(neo4jConfig);
+        sb.append(", activeMQConfig=").append(activeMQConfig);
         sb.append('}');
         return sb.toString();
     }
