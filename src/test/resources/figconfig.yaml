@@ -6,6 +6,6 @@ neo4jConfig:
 
 activeMQConfig:
     brokerName: fig
-    brokerURI: "tcp://localhost:61616"
+    brokerURI: "vm://localhost?broker.persistent=false"
     dataFolderLocation: "C:/temp/test_ems_data"
     requestQueue: "fig.TestRequestQueue"
