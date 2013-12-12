@@ -16,6 +16,28 @@ test{
     jvmArgs '-Xms64m', '-Xmx512m', '-XX:MaxPermSize=128m'
 }
 
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+            srcDir 'src/main/groovy'
+        }
+        resources {
+            srcDir 'src/main/resources'
+        }
+    }
+
+    test{
+        java {
+            srcDir 'src/test/java'
+            srcDir 'src/test/groovy'
+        }
+        resources {
+            srcDir 'src/test/resources'
+        }
+    }
+}
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Repositories  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 buildscript {
@@ -100,7 +122,11 @@ dependencies {
     //Unit testing libraries
     testCompile group: 'junit', name: 'junit', version: '4.11'
     testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
+
+    compile group: "org.neo4j", name: "neo4j-kernel", version: "${neo4jVersion}"
     testCompile group: "org.neo4j", name: "neo4j-kernel", version: "${neo4jVersion}", classifier: "tests"
+//    testCompile group: "org.neo4j", name: "neo4j-kernel", version: "${neo4jVersion}", classifier: "tests"
+
     /*testCompile 'org.apache.tomcat:tomcat-catalina:7.0.42'
     testCompile 'org.apache.tomcat:tomcat-coyote:7.0.42'
     testCompile 'org.apache.tomcat:tomcat-jasper:7.0.42'*/

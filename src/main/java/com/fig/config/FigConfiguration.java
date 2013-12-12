@@ -5,8 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 /**
  * Comment here about the class
@@ -18,8 +16,7 @@ public class FigConfiguration {
     private Neo4jConfig neo4jConfig;
     private ActiveMQConfig activeMQConfig;
     private static FigConfiguration figConfiguration;
-    //TODO remove this hardcoding
-    private static final String CONFIG_FILE = "C:\\Fizal\\WorkArea\\SourceCode\\GitHubHome\\Fig\\src\\main\\resources\\figconfig.yaml";
+    private static final String CONFIG_FILE = "/figconfig.yaml";
     private static final Logger LOG = LoggerFactory.getLogger(FigConfiguration.class);
 
     private FigConfiguration(){ }
@@ -33,7 +30,7 @@ public class FigConfiguration {
     }
 
     static FigConfiguration loadConfig(String configFile){
-        try( InputStream in = Files.newInputStream(Paths.get(configFile)) ) {//TODO load from classpath
+        try (InputStream in = FigConfiguration.class.getResourceAsStream(configFile)) {
             return new Yaml().loadAs( in, FigConfiguration.class );
         } catch (Exception e){
             throw new RuntimeException("Error loading configuration file: " + configFile, e);
