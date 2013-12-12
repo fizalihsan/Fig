@@ -2,6 +2,7 @@ package com.fig.messaging;
 
 import com.fig.config.ActiveMQConfig;
 import com.fig.config.FigConfiguration;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.broker.TransportConnector;
@@ -45,7 +46,8 @@ public class MessagingUtil {
         return INSTANCE;
     }
 
-    public void startBroker(){
+    @VisibleForTesting
+    void startBroker(){
 
         ActiveMQConfig config = FigConfiguration.getInstance().getActiveMQConfig();
         try {
@@ -82,7 +84,8 @@ public class MessagingUtil {
     /**
      * Initializes
      */
-    private void startConnection()  {
+    @VisibleForTesting
+    void startConnection()  {
         LOG.info("Initializing ActiveMQ connection factory...");
         ActiveMQConfig config = FigConfiguration.getInstance().getActiveMQConfig();
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(broker.getVmConnectorURI());
@@ -108,6 +111,7 @@ public class MessagingUtil {
         }
     }
 
+    @VisibleForTesting
     PolicyMap getPolicyMap(){
         PolicyMap policyMap = new PolicyMap();
         PolicyEntry policy = new PolicyEntry();
@@ -122,7 +126,7 @@ public class MessagingUtil {
      * times, then only the last listener is retained.
      * @param messageListener
      */
-    public void setRequestQueueListener(MessageListener messageListener) {
+    public void setQueueListener(MessageListener messageListener) {
         try {
             this.queueReceiver.setMessageListener(messageListener);
         } catch (JMSException e) {
@@ -176,7 +180,8 @@ public class MessagingUtil {
         }
     }
 
-    public BrokerService getBroker() {
+    @VisibleForTesting
+    BrokerService getBroker() {
         return broker;
     }
 }

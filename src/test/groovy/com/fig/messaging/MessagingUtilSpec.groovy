@@ -29,7 +29,7 @@ class MessagingUtilSpec extends Specification {
         MessagingUtil util = MessagingUtil.getInstance()
 
         def messageText;
-        util.setRequestQueueListener(new MessageListener() {
+        util.setQueueListener(new MessageListener() {
             @Override
             public void onMessage(Message message) {
                 if(message instanceof TextMessage){
