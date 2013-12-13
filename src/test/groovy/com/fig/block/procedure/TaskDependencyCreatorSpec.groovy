@@ -21,8 +21,6 @@ class TaskDependencyCreatorSpec extends Specification{
         creator.value([pair1, pair2])
 
         then:
-        0 * adapter.createTaskDependency("abc", "abc")
-        1 * adapter.createTaskDependency("abc", "xyz")
-        1 * adapter.createTaskDependency("abc", "def")
+        4 * adapter.createTaskDependency(_, _)
     }
 }
