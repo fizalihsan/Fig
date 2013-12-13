@@ -130,6 +130,7 @@ public class Neo4jTaskAdapter {
         //Check for any path from toTask to fromTask to avoid loops.
         checkForLoops(fromTask, toTask);
 
+        //No need to check for existing dependencies between the given nodes since duplicate dependencies are ignored by Neo4j
         final Node fromNode = getNode(fromTask);
         final Node toNode = getNode(toTask);
 
@@ -298,7 +299,12 @@ public class Neo4jTaskAdapter {
         return Neo4jHelper.getInstance().getNodeNameIndex();
     }
 
-    //TODO document this method
+    /**
+     * Method to check for self-loop among tasks. If the fromTask and toTask are one and the same,
+     * then an exception is thrown to avoid creating self-dependency.
+     * @param fromTask
+     * @param toTask
+     */
     @VisibleForTesting
     void checkForSelfLoop(String fromTask, String toTask){
         if(fromTask.equals(toTask)){
@@ -310,7 +316,12 @@ public class Neo4jTaskAdapter {
         }
     }
 
-    //TODO document this method
+    /**
+     * Method to check if there is an existing path from toTask -> fromTask. If it does, then an exception
+     * is thrown to avoid a cyclic-dependency by creating another dependency fromTask -> toTask
+     * @param fromTask
+     * @param toTask
+     */
     @VisibleForTesting
     void checkForLoops(String fromTask, String toTask){
         final Iterator<Path> pathsBetweenTasks = getPathsBetweenTasks(toTask, fromTask);
