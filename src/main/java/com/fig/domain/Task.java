@@ -32,19 +32,23 @@ public class Task implements Serializable{
     }
 
     public Map<String, Object> getProperties() {
-        return Maps.newHashMap(properties);
+        return properties==null?null:Maps.newHashMap(properties);
     }
 
     public void setProperties(Map<String, Object> properties) {
-        this.properties = Maps.newHashMap(properties);
+        if(properties!=null){
+            this.properties = Maps.newHashMap(properties);
+        }
     }
 
     public Set<String> getDependsOn() {
-        return Sets.newHashSet(dependsOn);
+        return dependsOn==null?null:Sets.newHashSet(dependsOn);
     }
 
     public void setDependsOn(Collection<String> dependsOn) {
-        this.dependsOn = Sets.newHashSet(dependsOn);
+        if(dependsOn!=null){
+            this.dependsOn = Sets.newHashSet(dependsOn);
+        }
     }
 
     /**
