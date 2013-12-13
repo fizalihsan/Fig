@@ -105,6 +105,8 @@ dependencies {
     testCompile group: "org.neo4j", name: "neo4j-kernel", version: "${neo4jVersion}", classifier: "tests"
 //    testCompile group: "org.neo4j", name: "neo4j-kernel", version: "${neo4jVersion}", classifier: "tests"
 
+    testCompile "com.thoughtworks.qdox:qdox:2.0-M1"
+
     /*testCompile 'org.apache.tomcat:tomcat-catalina:7.0.42'
     testCompile 'org.apache.tomcat:tomcat-coyote:7.0.42'
     testCompile 'org.apache.tomcat:tomcat-jasper:7.0.42'*/
