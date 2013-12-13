@@ -3,7 +3,6 @@ neo4jConfig:
     dbLocation: C:/temp/test-graph-db
     enableWebserver: false
 
-
 activeMQConfig:
     brokerName: fig
     brokerURI: "vm://localhost?broker.persistent=false"

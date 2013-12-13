@@ -10,4 +10,4 @@ appender("CONSOLE", ConsoleAppender) {
 }
 
 //Setting the log level of the root, and adding appenders
-root(INFO, ["CONSOLE"])
+root(DEBUG, ["CONSOLE"])

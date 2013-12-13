@@ -3,7 +3,6 @@ neo4jConfig:
     dbLocation: C:/temp/graph-db
     enableWebserver: false
 
-
 activeMQConfig:
     brokerName: fig
     brokerURI: "tcp://localhost:61616"
