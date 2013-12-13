@@ -6,7 +6,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Comment here about the class
+ * Main JAX RS class that is loaded by the web container during start up. This class registers all the web resources
+ * to serve.
  * User: Fizal
  * Date: 11/20/13
  * Time: 1:08 AM
@@ -17,7 +18,6 @@ public class MainApplication extends Application {
     public Set<Class<?>> getClasses() {
         Set<Class<?>> set = new HashSet<>();
         set.add(TaskResource.class);
-        set.add(RelationshipResource.class);
         set.add(StatusResource.class);
         return set;
     }

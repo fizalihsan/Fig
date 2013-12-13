@@ -26,7 +26,6 @@ class DesignPrincipleEnforcerSpec extends Specification {
                 "javax.ws.rs." : [
                         "MainApplication.java",
                         "TaskResource.java",
-                        "RelationshipResource.java",
                         "StatusResource.java",
                         "ValidationResponse.java" //TODO avoid having JAX references in this class
                 ]
