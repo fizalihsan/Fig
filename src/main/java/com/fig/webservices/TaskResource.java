@@ -1,15 +1,14 @@
 package com.fig.webservices;
 
-import com.fig.domain.ErrorResponse;
-import com.fig.domain.SuccessResponse;
-import com.fig.domain.Task;
-import com.fig.domain.ValidationResponse;
+import com.fig.domain.*;
 import com.fig.manager.TaskManager;
+import com.fig.messaging.MessagingUtil;
+import com.fig.messaging.ServiceRequestConsumer;
 import com.fig.webservices.validators.TaskCreateRequestValidator;
+import com.fig.webservices.validators.TaskDependencyRequestValidator;
 import com.fig.webservices.validators.TaskUpdateRequestValidator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.gs.collections.api.block.function.Function;
 import org.slf4j.Logger;
@@ -38,10 +37,19 @@ import static javax.ws.rs.core.Response.status;
 public class TaskResource {
     private static final Logger LOG = LoggerFactory.getLogger(TaskResource.class);
 
+    //Note: A new instance of this class is created for every request
+
     private TaskManager taskManager;
     private static final Splitter TASK_NAME_SPLITTER = Splitter.on(",").omitEmptyStrings().trimResults();
     private static final Function<String, ValidationResponse> TASK_CREATE_REQUEST_VALIDATOR = new TaskCreateRequestValidator();
     private static final Function<String, ValidationResponse> TASK_UPDATE_REQUEST_VALIDATOR = new TaskUpdateRequestValidator();
+    private static final Function<String, ValidationResponse> TASK_DEPENDENCY_REQUEST_VALIDATOR = new TaskDependencyRequestValidator();
+
+    private static final ServiceRequestConsumer SERVICE_REQUEST_CONSUMER = new ServiceRequestConsumer();
+
+    public TaskResource() {
+        MessagingUtil.getInstance().setQueueListener(SERVICE_REQUEST_CONSUMER);
+    }
 
     @POST
     @Produces({MediaType.APPLICATION_JSON})
@@ -49,16 +57,7 @@ public class TaskResource {
         final ValidationResponse response = TASK_CREATE_REQUEST_VALIDATOR.valueOf(request);
 
         if(response.isResponseStatusOK()){
-            final Task[] tasks = (Task[])response.getOutput();
-            LOG.info("Request received to create {} tasks: {}", tasks.length);
-
-            final SuccessResponse successResponse = response.getSuccessResponse();
-            final String requestId = successResponse.getRequestId();
-            try {
-                getTaskManager().createTasks(Lists.newArrayList(tasks));
-            } catch (Exception e) {
-                return status(BAD_REQUEST).entity(toJson(new ErrorResponse(e.toString(), "Error processing request: " + request))).build();
-            }
+            sendRequestToEMS(ServiceRequestType.CREATE_TASK, request, response);
         }
 
         return response.getResponse();
@@ -112,13 +111,7 @@ public class TaskResource {
         final ValidationResponse response = TASK_UPDATE_REQUEST_VALIDATOR.valueOf(request);
 
         if(response.isResponseStatusOK()){
-            Task[] tasks = (Task[]) response.getOutput();
-            LOG.info("Request received to update {} tasks.", tasks.length);
-            try {
-                getTaskManager().updateTaskProperties(Lists.newArrayList(tasks));
-            } catch (Exception e) {
-                return status(BAD_REQUEST).entity(toJson(new ErrorResponse(e.toString(), "Error processing request: " + request))).build();
-            }
+            sendRequestToEMS(ServiceRequestType.UPDATE_TASK, request, response);
         }
 
         return response.getResponse();
@@ -128,7 +121,13 @@ public class TaskResource {
     @Produces({MediaType.APPLICATION_JSON})
     @Path("/{taskNames}") //TODO fix the pattern
     public Response delete(@PathParam("taskNames") String taskNames) {
-        return null;
+        final ValidationResponse response = TASK_UPDATE_REQUEST_VALIDATOR.valueOf(taskNames); //TODO replace the validator instance
+
+        if(response.isResponseStatusOK()){
+            sendRequestToEMS(ServiceRequestType.DELETE_TASK, taskNames, response);
+        }
+
+        return response.getResponse();
     }
 
     //Only for testing purposes
@@ -138,6 +137,32 @@ public class TaskResource {
     public Response deleteAll() {
         getTaskManager().deleteAll();
         return Response.ok().build();
+    }
+
+    @POST
+    @Produces({MediaType.APPLICATION_JSON})
+    @Path("/relation")
+    @SuppressWarnings("unchecked")
+    public Response createDependency(@FormParam("request") String request) {
+        final ValidationResponse response = TASK_DEPENDENCY_REQUEST_VALIDATOR.valueOf(request);
+
+        if(response.isResponseStatusOK()){
+            sendRequestToEMS(ServiceRequestType.CREATE_DEPENDENCY, request, response);
+        }
+        return response.getResponse();
+    }
+
+    @DELETE
+    @Produces({MediaType.APPLICATION_JSON})
+    @Path("/relation")
+    @SuppressWarnings("unchecked")
+    public Response deleteDependency(@FormParam("request") String request) {
+        final ValidationResponse response = TASK_DEPENDENCY_REQUEST_VALIDATOR.valueOf(request);
+
+        if(response.isResponseStatusOK()){
+            sendRequestToEMS(ServiceRequestType.DELETE_DEPENDENCY, request, response);
+        }
+        return response.getResponse();
     }
 
     public TaskManager getTaskManager() {
@@ -160,5 +185,27 @@ public class TaskResource {
         }
 
         return Sets.newHashSet(TASK_NAME_SPLITTER.split(commaSeparatedTaskNames));
+    }
+
+    private void sendRequestToEMS(ServiceRequestType serviceRequestType, String json, ValidationResponse validationResponse){
+        ServiceRequest serviceRequest = new ServiceRequest();
+        serviceRequest.setRequestType(serviceRequestType);
+        serviceRequest.setJson(json);
+        serviceRequest.setValidationResponse(validationResponse);
+
+        MessagingUtil.getInstance().send(serviceRequest);
+    }
+
+    public static void main(String[] args) {
+        final TaskResource taskResource = new TaskResource();
+        taskResource.create("[{\"name\":\"z40\"}]");
+        taskResource.create("[{\"name\":\"z41\"}]");
+        
+        taskResource.createDependency("[{\"fromTask\":\"z40\",\"toTasks\":[\"z41\"]}]");
+        
+        final Response response = taskResource.query("z40,z41");
+        System.out.println(response.getEntity());
+        
+        taskResource.createDependency("[{\"fromTask\":\"z40\",\"toTasks\":[\"z41\"]}]");
     }
 }

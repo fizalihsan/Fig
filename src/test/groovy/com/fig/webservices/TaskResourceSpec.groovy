@@ -1,11 +1,14 @@
 package com.fig.webservices
 import com.fig.manager.TaskManager
+import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Timeout
 
 import javax.ws.rs.core.Response
 
 import static com.fig.domain.TaskBuilder.task
 import static com.fig.util.BindingUtil.toPrettyJson
+import static java.util.concurrent.TimeUnit.SECONDS
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST
 import static javax.ws.rs.core.Response.Status.OK
 /**
@@ -14,19 +17,32 @@ import static javax.ws.rs.core.Response.Status.OK
  * Date: 11/28/13
  * Time: 11:05 AM
  */
-class TaskResourceTest extends Specification {
+class TaskResourceSpec extends Specification {
 
-    def "create - Valid Response"() {
+    @Shared def taskResource = new TaskResource()
+
+    void setup() {
+        //cleaning up the graph database to start with clean state
+        taskResource.deleteAll()
+    }
+
+    @Timeout(value = 10, unit = SECONDS)
+    def "create - Create a valid task and query to check if it exists after creation"() {
         String json = """[{"name":"a1"}]""";
-        def resource = Spy(TaskResource)
-        def taskManager = Mock(TaskManager)
-        resource.getTaskManager() >> taskManager
 
         when:
-        def response = resource.create(json)
+        def response = taskResource.create(json)
+        sleep(2000) //intentional delay to let the processing complete
         then:
         response.getStatusInfo() == Response.Status.OK
-        1 * taskManager.createTasks(_)
+        def query = taskResource.query("a1")
+        query.entity == """[
+  {
+    "name": "a1",
+    "dependsOn": [],
+    "properties": {}
+  }
+]"""
     }
 
     def "create - Invalid Response"() {
@@ -71,17 +87,24 @@ class TaskResourceTest extends Specification {
         "y,z" | OK          | ["requestId", "requestedTime", "message"] | toPrettyJson([taskZ, taskY])
     }
 
-    def "update - Valid Response"() {
-        String json = """[{"name":"a1"}]""";
-        def resource = Spy(TaskResource)
-        def taskManager = Mock(TaskManager)
-        resource.getTaskManager() >> taskManager
+    def "update - Update properties on an existing task and query to see the updates in place"() {
+        taskResource.create("""[{"name":"a1"}]""")
+        sleep(2000) //intentional delay to let the processing complete
 
         when:
-        def response = resource.update(json)
+        def response = taskResource.update("""[{"name":"a1", "properties":{"key":"value1"}}]""")
+        sleep(2000) //intentional delay to let the processing complete
         then:
         response.getStatusInfo() == Response.Status.OK
-        1 * taskManager.updateTaskProperties(_)
+        taskResource.query("a1").entity == """[
+  {
+    "name": "a1",
+    "dependsOn": [],
+    "properties": {
+      "key": "value1"
+    }
+  }
+]"""
     }
 
     def "update - Invalid Response"() {
@@ -106,5 +129,38 @@ class TaskResourceTest extends Specification {
         "a,b"     | 2
         "a,,b"    | 2
         "a,,b   " | 2
+    }
+
+    def "createDependency - Valid Response"() {
+        taskResource.create("""[{"name":"a1"}, {"name":"b1"}, {"name":"c1"}]""")
+        sleep(5000) //intentional delay to let the processing complete
+
+        when:
+        def response = taskResource.createDependency("""[{"fromTask":"a1", "toTasks":["b1", "c1"]}]""")
+        sleep(2000) //intentional delay to let the processing complete
+
+        then:
+        response.getStatusInfo() == Response.Status.OK
+        taskResource.query("a1").entity == """[
+  {
+    "name": "a1",
+    "dependsOn": [
+      "c1",
+      "b1"
+    ],
+    "properties": {}
+  }
+]"""
+    }
+
+    def "createDependency - Invalid Response"() {
+        def resource = Spy(TaskResource)
+        def taskManager = Mock(TaskManager)
+        resource.getTaskManager() >> taskManager
+
+        when:
+        def response = resource.createDependency(null)
+        then:
+        response.getStatusInfo() == Response.Status.BAD_REQUEST
     }
 }

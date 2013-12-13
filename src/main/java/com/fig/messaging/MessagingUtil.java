@@ -6,12 +6,20 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.broker.TransportConnector;
+import org.apache.activemq.broker.jmx.BrokerViewMBean;
+import org.apache.activemq.broker.jmx.QueueViewMBean;
 import org.apache.activemq.broker.region.policy.PolicyEntry;
 import org.apache.activemq.broker.region.policy.PolicyMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jms.*;
+import javax.management.MBeanServerConnection;
+import javax.management.MBeanServerInvocationHandler;
+import javax.management.ObjectName;
+import javax.management.remote.JMXConnector;
+import javax.management.remote.JMXConnectorFactory;
+import javax.management.remote.JMXServiceURL;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.Arrays;
@@ -32,6 +40,7 @@ public class MessagingUtil {
     private QueueSender queueSender;
     private QueueReceiver queueReceiver;
     private Queue queue;
+    private QueueViewMBean queueMbean;
     private static final MessagingUtil INSTANCE = new MessagingUtil();
 
     private MessagingUtil(){
@@ -176,6 +185,45 @@ public class MessagingUtil {
                 this.broker.waitUntilStopped();
             } catch (Exception e) {
                 LOG.error("Error stopping ActiveMQ broker.", e);
+            }
+        }
+    }
+
+    public long queueDepth(){
+        initJMX();
+
+        return this.queueMbean.getEnqueueCount();
+    }
+
+    /**
+     * Initialize MX Beans to collect statistics programmatically
+     */
+    private void initJMX(){
+        //http://activemq.apache.org/activemq-580-release.html
+        if(this.queueMbean == null){
+            try {
+                String queueName = this.queue.getQueueName();
+                JMXServiceURL url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://localhost:1099/jmxrmi");
+                JMXConnector jmxc = JMXConnectorFactory.connect(url);
+                MBeanServerConnection conn = jmxc.getMBeanServerConnection();
+
+                ObjectName activeMQ = new ObjectName("org.apache.activemq:type=Broker,brokerName=" + this.broker.getBrokerName());
+                BrokerViewMBean mbean = MBeanServerInvocationHandler.newProxyInstance(conn, activeMQ, BrokerViewMBean.class, true);
+
+                for (ObjectName name : mbean.getQueues()) {
+                    QueueViewMBean viewMBean = MBeanServerInvocationHandler.newProxyInstance(conn, name, QueueViewMBean.class, true);
+
+                    if (viewMBean.getName().equals(queueName)) {
+                        this.queueMbean = viewMBean;
+                        break;
+                    }
+                }
+
+                if(this.queueMbean == null){
+                    throw new RuntimeException("No matching MBean for queue: " + queueName);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Error initializing ActiveMQ JMX MBeans for statistics", e);
             }
         }
     }
