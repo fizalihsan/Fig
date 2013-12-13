@@ -17,9 +17,8 @@ test{  jvmArgs '-Xms64m', '-Xmx512m', '-XX:MaxPermSize=128m' }
 sourceSets {
     main {
         java {
-            srcDirs ['src/main/java', 'src/main/groovy']
-//            srcDir 'src/main/java'
-//            srcDir 'src/main/groovy'
+            srcDir 'src/main/java'
+            srcDir 'src/main/groovy'
         }
         resources { srcDir 'src/main/resources' }
     }
