@@ -74,7 +74,7 @@ public class WebserverUtil {
                 if(server!=null){
                     LOG.info("Shutting down JETTY web server...");
                     try {
-                        server.stop();
+                        server.shutdown();
                     } catch (Exception e) {
                         LOG.error("Error occurred while stopping JETTY web server: ", e);
                     }

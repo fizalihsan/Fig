@@ -1,7 +1,7 @@
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.core.ConsoleAppender
 import ch.qos.logback.core.FileAppender
-
+statusListener(OnConsoleStatusListener)
 def logPattern = {
     pattern = "%d{yyyy-MM-dd HH:mm:ss.SSS}  %-5level [%thread] %logger{36} - %msg%n"
 }

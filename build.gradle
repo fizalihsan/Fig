@@ -9,9 +9,6 @@ version = '0.0.1'
 final tomcatHome = "C:/apps/xampp/tomcat/"
 final deployDir = "${tomcatHome}/webapps"
 
-tasks.withType(JavaCompile) { options.compilerArgs += ["-sourcepath", "''"]}
-//compileJava.options.compilerArgs = ["-implicit:none"]
-
 test{  jvmArgs '-Xms64m', '-Xmx512m', '-XX:MaxPermSize=128m' }
 
 sourceSets {
@@ -48,9 +45,6 @@ final neo4jVersion = '1.9.5'
 
 dependencies {
     //ActiveMQ libraries
-    // NOTE: The below activemq jar comes with both classes and java files in it. Becuase of that, during war build
-    // java files in them get compiled and becomes a part of the war file which causes the webapp to fail.
-    // As a makeshift solution, delete the files from /WEB-INF/classes folder manually.
     compile "org.apache.activemq:activemq-all:5.9.0"
 
     //Collection Libraries
@@ -102,7 +96,7 @@ dependencies {
     testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
 
     compile group: "org.neo4j", name: "neo4j-kernel", version: "${neo4jVersion}"
-    testCompile group: "org.neo4j", name: "neo4j-kernel", version: "${neo4jVersion}", classifier: "tests"
+    compile group: "org.neo4j", name: "neo4j-kernel", version: "${neo4jVersion}", classifier: "tests"
 //    testCompile group: "org.neo4j", name: "neo4j-kernel", version: "${neo4jVersion}", classifier: "tests"
 
     testCompile "com.thoughtworks.qdox:qdox:2.0-M1"
@@ -115,6 +109,12 @@ dependencies {
     compile 'org.yaml:snakeyaml:1.13'
 }
 
+war{
+    // NOTE: One of the below 2 options needs to be in place for the war files to be built correctly. Some jar files like activemq come with both classes and java files in it.
+    // Becuase of that, during war build java files in them get compiled and becomes a part of the war file which causes the webapp to fail.
+    tasks.withType(JavaCompile) { options.compilerArgs += ["-sourcepath", "''"]}
+    //compileJava.options.compilerArgs = ["-implicit:none"]
+}
 
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Web Application Deployment ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 task deployToTomcat(type: Copy) {
