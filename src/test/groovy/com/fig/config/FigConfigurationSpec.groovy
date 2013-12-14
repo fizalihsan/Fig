@@ -24,7 +24,7 @@ class FigConfigurationSpec extends Specification {
 
         activeMQConfig.brokerName == "fig"
         activeMQConfig.dataFolderLocation == "C:/temp/test_ems_data"
-        activeMQConfig.brokerURI == "tcp://localhost:61616"
+        activeMQConfig.brokerURI == "vm://localhost?broker.persistent=false"
         activeMQConfig.requestQueue == "fig.TestRequestQueue"
     }
 }
