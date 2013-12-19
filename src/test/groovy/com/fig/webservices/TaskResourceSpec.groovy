@@ -24,10 +24,10 @@ class TaskResourceSpec extends Specification {
 
     }
 
-    void cleanup(){
+    /*void cleanup(){
         //cleaning up the graph database to start with clean state
         taskResource.deleteAll()
-    }
+    }*/
 
     @Ignore
     def "create - Create a valid task and query to check if it exists after creation"() {
