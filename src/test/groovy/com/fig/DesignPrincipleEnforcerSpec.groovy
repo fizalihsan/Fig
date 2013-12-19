@@ -3,6 +3,7 @@ package com.fig
 import com.thoughtworks.qdox.JavaProjectBuilder
 import groovy.io.FileType
 import org.apache.commons.io.FilenameUtils
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 /**
@@ -42,6 +43,7 @@ class DesignPrincipleEnforcerSpec extends Specification {
             ]
     ]
 
+    @Ignore
     def "Leakage of Concern Check - Plain vanilla Java solution"() {
         //TODO Java source path is hardcoded since there is no way to scan through the source files without providing
         //absolute path. Reflection can't be used since the 'import' details are lost in bytecode. Source files could
@@ -72,6 +74,7 @@ class DesignPrincipleEnforcerSpec extends Specification {
         then: leakages.size() == 0
     }
 
+    @Ignore
     def "Leakage of Concern Check - Using QDox library"() {
         def leakages = []
 
