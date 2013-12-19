@@ -1,7 +1,6 @@
 package com.fig.webservices
 import com.fig.manager.TaskManager
 import spock.lang.Ignore
-import spock.lang.Shared
 import spock.lang.Specification
 
 import javax.ws.rs.core.Response
@@ -18,7 +17,8 @@ import static javax.ws.rs.core.Response.Status.OK
  */
 class TaskResourceSpec extends Specification {
 
-    @Shared def taskResource = new TaskResource()
+//    @Shared def taskResource = new TaskResource()
+    def taskResource
 
     void setup() {
 
