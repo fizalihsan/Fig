@@ -1,11 +1,16 @@
 package com.fig
 
-import com.thoughtworks.qdox.JavaProjectBuilder
-import groovy.io.FileType
 import org.apache.commons.io.FilenameUtils
+import org.apache.commons.io.IOUtils
+import org.kohsuke.github.GHBranch
+import org.kohsuke.github.GHRepository
+import org.kohsuke.github.GitHub
 import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
+
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 /**
  * Comment here about the class
  * User: Fizal
@@ -13,11 +18,6 @@ import spock.lang.Specification
  * Time: 12:33 PM
  */
 class DesignPrincipleEnforcerSpec extends Specification {
-
-    //TODO Java source path is hardcoded since there is no way to scan through the source files without providing
-    //absolute path. Reflection can't be used since the 'import' details are lost in bytecode. Source files could
-    //be included in the jar file but jarring happens only after the unit test completes successfully.
-    @Shared def javaSourcePath = new File('C:\\Fizal\\WorkArea\\SourceCode\\GitHubHome\\Fig\\src\\main\\java')
 
     @Shared def packageVsClasses = [
             "org.apache.activemq" : [
@@ -43,31 +43,59 @@ class DesignPrincipleEnforcerSpec extends Specification {
             ]
     ]
 
-    @Ignore
-    def "Leakage of Concern Check - Plain vanilla Java solution"() {
-        //TODO Java source path is hardcoded since there is no way to scan through the source files without providing
-        //absolute path. Reflection can't be used since the 'import' details are lost in bytecode. Source files could
-        //be included in the jar file but jarring happens only after the unit test completes successfully.
+    /**
+     * This is a unique test case to scan through the source Java files to look for design principle breaches.
+     * For example, in order to confine certain 3rd party library usage within a limited set of classes, one can define the library pkg names and class names allowed.
+     * If a class not registered here references one of those libraries, this unit test would fail.
+     */
+    def "Leakage of Concern Check - Reading from GitHub zip file"(){
+        //Step 1: Get all the Java files from remote GitHub repository
+        def githubZip = "https://github.com/fizalihsan/Fig/archive/master.zip"
+
+        ZipInputStream zipInputStream = null
+        def javaFiles = [:]
+        try {
+            zipInputStream = new ZipInputStream(new URL(githubZip).openStream());
+            ZipEntry zipEntry;
+
+            while( (zipEntry = zipInputStream.getNextEntry())!=null ) {
+                if(!zipEntry.isDirectory() && zipEntry.getName().endsWith("java")){
+                    StringWriter stringWriter = new StringWriter()
+                    IOUtils.copy(zipInputStream, stringWriter)
+                    def fileContent = stringWriter.toString();
+
+                    javaFiles[zipEntry.getName()] = fileContent
+                    stringWriter.close()
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace()
+            assert !true
+        } finally {
+            zipInputStream.close()
+        }
+
+        //Step 2: Parse through the Java file contents and check for leakages
         def leakages = []
 
-        javaSourcePath.eachFileRecurse(FileType.FILES) { file ->
-            if (file.name =~ /.*\.java/) {
-                file.readLines().eachWithIndex { String line, int lineIndex ->
+        javaFiles.each { fileName, content ->
+            def lines = content.split("\\\n");
+            for (int lineIndex = 0; lineIndex < lines.size(); lineIndex++) {
+                String line = lines[lineIndex]
 
-                    packageVsClasses.each { packageName, allowedClasses ->
-                        if(line.contains(packageName)){
-                            def baseName = FilenameUtils.getName(file.name);
-                            if(!allowedClasses.contains(baseName)){
-                                leakages << "$file:$lineIndex - $line - $baseName"
-                            }
+                packageVsClasses.each { packageName, allowedClasses ->
+                    if(line.contains(packageName)){
+                        def baseName = FilenameUtils.getName(fileName);
+                        if(!allowedClasses.contains(baseName)){
+                            leakages << "$fileName:$lineIndex - $line - $baseName"
                         }
                     }
-
                 }
+
             }
         }
 
-        println "Leakage of Concerns:"
+        println "Leakage of concerns found:"
         leakages.each { println it }
 
         when: true == true
@@ -75,34 +103,14 @@ class DesignPrincipleEnforcerSpec extends Specification {
     }
 
     @Ignore
-    def "Leakage of Concern Check - Using QDox library"() {
-        def leakages = []
+    def "Leakage of Concern Check - Reading from GitHub via GitHub API"(){
+        def githubZip = "https://github.com/fizalihsan/Fig/archive/master.zip"
 
-        // Get the ClassLibrary
-        JavaProjectBuilder builder = new JavaProjectBuilder();
-        // Add a sourcefolder;
-        builder.addSourceTree( javaSourcePath );
-
-        builder.getSources().each { source ->
-            def imports = source.imports
-            def classes = source.getClasses()
-
-            packageVsClasses.each { packageName, allowedClasses ->
-                imports.each { importStmt ->
-                    if(importStmt.contains(packageName)){
-                        def fileName = classes[0].getName() + ".java"
-                        if(!allowedClasses.contains(fileName)){
-                            leakages << "$fileName:$importStmt - $fileName"
-                        }
-                    }
-                }
-            }
-        };
-
-        println "Leakage of Concerns:"
-        leakages.each { println it }
-
-        when: true == true
-        then: leakages.size() == 0
+        GitHub gitHub = GitHub.connectAnonymously()
+        GHRepository repository = gitHub.getRepository("fizalihsan/Fig")
+        GHBranch masterBranch = repository.getBranches().get(repository.getMasterBranch());
+        println("")
+        when : true
+        then : true
     }
 }

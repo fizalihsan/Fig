@@ -9,7 +9,7 @@ version = '0.0.1'
 final tomcatHome = "C:/apps/xampp/tomcat/"
 final deployDir = "${tomcatHome}/webapps"
 
-test{  jvmArgs '-Xms64m', '-Xmx512m', '-XX:MaxPermSize=128m' }
+test{  jvmArgs '-Xms64m', '-Xmx2G', '-XX:MaxPermSize=128m' }
 
 sourceSets {
     main {
@@ -99,7 +99,9 @@ dependencies {
     compile group: "org.neo4j", name: "neo4j-kernel", version: "${neo4jVersion}", classifier: "tests"
 //    testCompile group: "org.neo4j", name: "neo4j-kernel", version: "${neo4jVersion}", classifier: "tests"
 
-    testCompile "com.thoughtworks.qdox:qdox:2.0-M1"
+//    testCompile "com.thoughtworks.qdox:qdox:2.0-M1" //for the unit test case which enforces design principles. Qdox is a parser for extracting class/interface/method definitions
+
+    testCompile "org.kohsuke:github-api:1.47" //for the unit test case which enforces design principles
 
     /*testCompile 'org.apache.tomcat:tomcat-catalina:7.0.42'
     testCompile 'org.apache.tomcat:tomcat-coyote:7.0.42'
