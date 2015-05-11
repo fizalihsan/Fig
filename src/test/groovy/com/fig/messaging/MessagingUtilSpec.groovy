@@ -53,5 +53,6 @@ class MessagingUtilSpec extends Specification {
 
     void cleanupSpec() {
         util.shutdown()
+        util.reset()
     }
 }

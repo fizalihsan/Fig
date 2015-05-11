@@ -23,6 +23,7 @@ import javax.management.remote.JMXServiceURL;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Generic utility to interact with ActiveMQ messaging
@@ -47,12 +48,38 @@ public class MessagingUtil {
 
     }
 
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(broker, queueSession, queueConnection, queueSender, queueReceiver, queue, queueMbean);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final MessagingUtil other = (MessagingUtil) obj;
+        return Objects.equals(this.broker, other.broker) && Objects.equals(this.queueSession, other.queueSession) && Objects.equals(this.queueConnection, other.queueConnection) && Objects.equals(this.queueSender, other.queueSender) && Objects.equals(this.queueReceiver, other.queueReceiver) && Objects.equals(this.queue, other.queue) && Objects.equals(this.queueMbean, other.queueMbean);
+    }
+
     public static MessagingUtil getInstance(){
         if(INSTANCE.broker == null){
             INSTANCE.startBroker();
             INSTANCE.startConnection();
         }
         return INSTANCE;
+    }
+
+    /**
+     * This method resets the broker instance for unit-testing purposes
+     */
+    @VisibleForTesting
+    void reset(){
+        INSTANCE.broker = null;
     }
 
     @VisibleForTesting
